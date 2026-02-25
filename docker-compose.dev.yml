@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # ── Traefik ────────────────────────────────────────────────────────────────
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik-dev
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+      - "8443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - traefik-data:/etc/traefik/traefik-manager
+    networks:
+      - proxy
+
+  # ── Docker Socket Proxy (Read Only) ─────────────────────────────────────────
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: socket-proxy-dev
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+
+  # ── Traefik Manager Backend (Hot Reloading via Air) ────────────────────────
+  traefik-manager-api-dev:
+    image: golang:alpine
+    container_name: traefik-manager-api-dev
+    working_dir: /app/backend
+    # Install GCC for SQLite CGO compilation, then install and run Air on boot against the source code
+    command: /bin/sh -c "apk add --no-cache gcc musl-dev && go run github.com/air-verse/air@latest -c .air.toml"
+    environment:
+      CGO_ENABLED: "1"
+      TM_DB_PATH: /data/traefik-manager.db
+      TM_CONFIG_PATH: /etc/traefik/traefik-manager/dynamic_conf.yaml
+      TM_ADDR: :8080
+      TM_DOCKER_HOST: http://socket-proxy:2375
+      KUBECONFIG: /app/nova-cluster-k8s-kubeconfig.yaml
+    volumes:
+      # Mount the entire repository to enable live code edits
+      - .:/app
+      - tm-data:/data
+      - traefik-data:/etc/traefik/traefik-manager
+      # Persist Go modules to speed up container restarts
+      - go-mod-cache:/go/pkg/mod
+    depends_on:
+      - socket-proxy
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tm-api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.tm-api.entrypoints=web"
+      - "traefik.http.services.tm-api.loadbalancer.server.port=8080"
+
+  # ── Traefik Manager Frontend (Hot Reloading via Vite) ──────────────────────
+  traefik-manager-ui-dev:
+    image: node:20-alpine
+    container_name: traefik-manager-ui-dev
+    working_dir: /app/frontend
+    # Force fresh install on first boot to populate the anonymous node_modules volume, then start dev server
+    command: /bin/sh -c "npm install && npm run dev"
+    environment:
+      # Tell Vite proxy to route /api requests to the Go container instead of localhost
+      VITE_API_TARGET: http://traefik-manager-api-dev:8080
+    ports:
+      # Forward the Vite dev server port so the user can access localhost:5177 directly outside of Traefik
+      - "5177:5177"
+    volumes:
+      # Mount source code for live hot-module replacement
+      - ./frontend:/app/frontend
+      # Anonymous volume specifically for node_modules to avoid conflicting with host machine's npm installation
+      - /app/frontend/node_modules
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tm-ui.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.tm-ui.entrypoints=web"
+      - "traefik.http.services.tm-ui.loadbalancer.server.port=5177"
+
+volumes:
+  traefik-data:
+  tm-data:
+  go-mod-cache:
+
+networks:
+  proxy:
+    external: false

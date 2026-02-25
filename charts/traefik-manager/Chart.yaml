@@ -1,0 +1,14 @@
+apiVersion: v2
+name: traefik-manager
+description: A Kubernetes-native Web UI for managing Traefik proxy CRDs.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - traefik
+  - manager
+  - ingress
+  - crd
+  - gui
+maintainers:
+  - name: traefik-manager-admin

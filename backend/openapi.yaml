@@ -1,0 +1,260 @@
+openapi: 3.0.3
+info:
+  title: Traefik Manager API
+  description: REST API for managing Traefik proxy hosts and middleware rules dynamically via a file provider.
+  version: "0.2"
+servers:
+  - url: /api/v1
+paths:
+  /hosts:
+    get:
+      summary: List Proxy Hosts
+      responses:
+        "200":
+          description: A list of proxy hosts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProxyHost'
+    post:
+      summary: Create a Proxy Host
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProxyHost'
+      responses:
+        "201":
+          description: Created proxy host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyHost'
+
+  /hosts/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get a Proxy Host by ID
+      responses:
+        "200":
+          description: A single proxy host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyHost'
+        "404":
+          description: Host not found
+    put:
+      summary: Update a Proxy Host
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProxyHost'
+      responses:
+        "200":
+          description: Updated proxy host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyHost'
+    delete:
+      summary: Delete a Proxy Host
+      responses:
+        "204":
+          description: Host deleted successfully
+
+  /middleware:
+    get:
+      summary: List Middleware
+      responses:
+        "200":
+          description: A list of custom middlewares
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Middleware'
+    post:
+      summary: Create Middleware
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMiddleware'
+      responses:
+        "201":
+          description: Created middleware
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Middleware'
+
+  /middleware/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Update Middleware
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMiddleware'
+      responses:
+        "200":
+          description: Updated middleware
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Middleware'
+    delete:
+      summary: Delete Middleware
+      responses:
+        "204":
+          description: Middleware deleted successfully
+
+  /config/regenerate:
+    post:
+      summary: Force Configuration Regeneration
+      description: Re-compiles the Traefik dynamic_conf.yaml directly from the database state.
+      responses:
+        "200":
+          description: Config regenerated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+
+components:
+  schemas:
+    ProxyHost:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        domain_names:
+          type: array
+          items:
+            type: string
+        forward_scheme:
+          type: string
+          enum: [http, https]
+        forward_host:
+          type: string
+        forward_port:
+          type: integer
+        websockets_enabled:
+          type: boolean
+        advanced_rule:
+          type: string
+        ssl_enabled:
+          type: boolean
+        ssl_force:
+          type: boolean
+        ssl_resolver:
+          type: string
+        middleware_ids:
+          type: array
+          items:
+            type: integer
+            
+    CreateProxyHost:
+      type: object
+      required:
+        - domain_names
+        - forward_scheme
+        - forward_host
+        - forward_port
+      properties:
+        domain_names:
+          type: array
+          items:
+            type: string
+        forward_scheme:
+          type: string
+          enum: [http, https]
+        forward_host:
+          type: string
+        forward_port:
+          type: integer
+        websockets_enabled:
+          type: boolean
+        advanced_rule:
+          type: string
+        ssl_enabled:
+          type: boolean
+        ssl_force:
+          type: boolean
+        ssl_resolver:
+          type: string
+        middleware_ids:
+          type: array
+          items:
+            type: integer
+
+    Middleware:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        name:
+          type: string
+        type:
+          type: string
+          enum: [basic_auth, ip_allowlist, rate_limit, headers]
+        config:
+          type: object
+          additionalProperties: true
+          
+    CreateMiddleware:
+      type: object
+      required:
+        - name
+        - type
+        - config
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [basic_auth, ip_allowlist, rate_limit, headers]
+        config:
+          type: object
+          additionalProperties: true
+
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string

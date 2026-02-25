@@ -1,0 +1,78 @@
+services:
+
+  # ── Traefik ────────────────────────────────────────────────────────────────
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+      - "8443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - traefik-data:/etc/traefik/traefik-manager   # shared with traefik-manager
+      - letsencrypt:/letsencrypt
+    networks:
+      - proxy
+
+  # ── Docker Socket Proxy (Read Only) ─────────────────────────────────────────
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: socket-proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+
+  # ── Traefik Manager Backend ────────────────────────────────────────────────
+  traefik-manager-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: traefik-manager-api
+    restart: unless-stopped
+    environment:
+      TM_DB_PATH: /data/traefik-manager.db
+      TM_CONFIG_PATH: /etc/traefik/traefik-manager/dynamic_conf.yaml
+      TM_ADDR: :8080
+      TM_DOCKER_HOST: http://socket-proxy:2375
+    depends_on:
+      - socket-proxy
+    volumes:
+      - tm-data:/data
+      - traefik-data:/etc/traefik/traefik-manager
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tm-api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.tm-api.entrypoints=web"
+      - "traefik.http.services.tm-api.loadbalancer.server.port=8080"
+
+  # ── Traefik Manager Frontend ───────────────────────────────────────────────
+  traefik-manager-ui:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: traefik-manager-ui
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tm-ui.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.tm-ui.entrypoints=web"
+      - "traefik.http.services.tm-ui.loadbalancer.server.port=80"
+
+volumes:
+  traefik-data:   # shared volume: dynamic_conf.yaml
+  tm-data:        # SQLite database
+  letsencrypt:    # Let's Encrypt certificates
+
+networks:
+  proxy:
+    external: false

@@ -1,0 +1,7 @@
+using default for TM_ADDR=:8080
+2026/02/24 09:00:19 docker swarm provider initialized
+2026/02/24 09:00:19 UI static files not found, serving API only (stat /home/chousour/dev/traefik-manager/backend/dist: no such file or directory)
+2026/02/24 09:00:19 server listening on :8080
+2026/02/24 09:00:19 "GET http://localhost:8080/api/v1/namespaces HTTP/1.1" from [::1]:59626 - 200 18B in 90.413µs
+2026/02/24 10:57:01 shutting down gracefully...
+2026/02/24 10:57:01 server stopped

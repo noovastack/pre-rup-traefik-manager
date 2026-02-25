@@ -1,0 +1,49 @@
+{{- if .Values.serviceAccount.create -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "traefik-manager.serviceAccountName" . }}
+  labels:
+    {{- include "traefik-manager.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "traefik-manager.fullname" . }}
+rules:
+  - apiGroups: ["traefik.containo.us", "traefik.io"]
+    resources:
+      - ingressroutes
+      - middlewares
+      - tlsoptions
+      - tlsstores
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources:
+      - gatewayclasses
+      - gateways
+      - httproutes
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources:
+      - services
+      - namespaces
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "traefik-manager.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "traefik-manager.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "traefik-manager.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

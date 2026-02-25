@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik-manager
+  namespace: default
+  labels:
+    app: traefik-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik-manager
+  template:
+    metadata:
+      labels:
+        app: traefik-manager
+    spec:
+      serviceAccountName: traefik-manager
+      containers:
+        - name: traefik-manager
+          image: tmanager:latest # Replace with your registry if pushing externally
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TM_ADDR
+              value: ":8080"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-manager
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: traefik-manager
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

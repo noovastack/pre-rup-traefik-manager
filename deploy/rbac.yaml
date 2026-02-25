@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik-manager
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traefik-manager
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["traefik.containo.us", "traefik.io"]
+    resources: ["ingressroutes", "middlewares", "tlsoptions", "tlsstores", "traefikservices", "serverstransports"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gatewayclasses", "gateways", "httproutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traefik-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-manager
+subjects:
+  - kind: ServiceAccount
+    name: traefik-manager
+    namespace: default
