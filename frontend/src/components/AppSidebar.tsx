@@ -80,11 +80,11 @@ const navGroups: {
 
 // Active state accent color per group
 const accentStyles: Record<string, string> = {
-  blue: 'border-l-blue-500 bg-blue-600/10 text-blue-300',
-  indigo: 'border-l-indigo-500 bg-indigo-600/10 text-indigo-300',
-  emerald: 'border-l-emerald-500 bg-emerald-600/10 text-emerald-300',
-  purple: 'border-l-purple-500 bg-purple-600/10 text-purple-300',
-  rose: 'border-l-rose-500 bg-rose-600/10 text-rose-300',
+  blue: 'border-l-blue-500 bg-blue-600/10 text-blue-600 dark:text-blue-300',
+  indigo: 'border-l-indigo-500 bg-indigo-600/10 text-indigo-600 dark:text-indigo-300',
+  emerald: 'border-l-emerald-500 bg-emerald-600/10 text-emerald-600 dark:text-emerald-300',
+  purple: 'border-l-purple-500 bg-purple-600/10 text-purple-600 dark:text-purple-300',
+  rose: 'border-l-rose-500 bg-rose-600/10 text-rose-600 dark:text-rose-300',
 };
 
 export function AppSidebar({
@@ -103,18 +103,18 @@ export function AppSidebar({
   const { logout } = useAuth();
 
   return (
-    <Sidebar className="border-r border-zinc-800/40 bg-zinc-950/95 text-zinc-300">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       {/* ── Brand Header ──────────────────────────────────────────── */}
-      <SidebarHeader className="border-b border-zinc-800/40 p-0">
+      <SidebarHeader className="border-b border-sidebar-border p-0">
         <div className="px-5 pt-5 pb-4">
           <div className="flex items-center gap-3">
             <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 font-bold text-white text-sm shadow-lg shadow-blue-500/25">
               T
-              <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-zinc-950 pulse-dot" />
+              <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-sidebar pulse-dot" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-zinc-100 tracking-wide leading-tight">Traefik Manager</span>
-              <span className="text-[10px] text-zinc-500 font-medium">Kubernetes Dashboard</span>
+              <span className="text-sm font-semibold text-sidebar-foreground tracking-wide leading-tight">Traefik Manager</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Kubernetes Dashboard</span>
             </div>
           </div>
         </div>
@@ -125,15 +125,15 @@ export function AppSidebar({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full justify-between bg-zinc-900/80 border-zinc-800/60 text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-zinc-700 transition-colors h-9 text-xs">
+              <Button variant="outline" className="w-full justify-between bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent transition-colors h-9 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                  <span className="truncate font-medium">NS: {activeNamespace}</span>
+                  <span className="truncate font-medium text-sidebar-foreground/80">NS: {activeNamespace}</span>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 opacity-40" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-zinc-900 border-zinc-800 text-zinc-300">
+            <DropdownMenuContent className="w-56">
               {namespaces.length === 0 ? (
                 <DropdownMenuItem disabled>Loading namespaces…</DropdownMenuItem>
               ) : (
@@ -141,7 +141,7 @@ export function AppSidebar({
                   <DropdownMenuItem 
                     key={ns} 
                     onClick={() => onNamespaceChange(ns)}
-                    className="hover:bg-blue-600/20 hover:text-blue-400 focus:bg-blue-600/20 focus:text-blue-400 cursor-pointer"
+                    className="cursor-pointer"
                   >
                     {ns}
                   </DropdownMenuItem>
@@ -153,7 +153,7 @@ export function AppSidebar({
       </SidebarHeader>
 
       {/* ── Navigation Groups ──────────────────────────────────────── */}
-      <SidebarContent className="gap-0 py-1 px-1">
+      <SidebarContent className="gap-0 py-1 px-1 overflow-hidden hover:overflow-auto">
         {navGroups.map((group, groupIdx) => (
           <div key={group.label}>
             {groupIdx > 0 && (
@@ -177,12 +177,12 @@ export function AppSidebar({
                           className={`
                             rounded-lg transition-colors duration-150 h-9
                             border-l-2 border-l-transparent
-                            hover:bg-zinc-800/50 hover:border-l-zinc-600
-                            ${isActive ? activeStyle : 'text-zinc-400'}
+                            hover:bg-sidebar-accent hover:border-l-sidebar-border
+                            ${isActive ? activeStyle : 'text-muted-foreground'}
                           `}
                           tooltip={item.label}
                         >
-                          <div className={`flex h-6 w-6 items-center justify-center rounded-md ${isActive ? 'bg-white/10' : 'bg-zinc-800/50'} transition-colors`}>
+                          <div className={`flex h-6 w-6 items-center justify-center rounded-md ${isActive ? 'bg-sidebar-primary/10' : 'bg-sidebar-accent'} transition-colors`}>
                             <item.icon className={`h-3.5 w-3.5 ${isActive ? 'text-current' : item.iconColor}`} />
                           </div>
                           <span className={`text-[13px] ${isActive ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
@@ -198,16 +198,16 @@ export function AppSidebar({
       </SidebarContent>
 
       {/* ── Footer ─────────────────────────────────────────────────── */}
-      <SidebarFooter className="border-t border-zinc-800/40 p-3">
+      <SidebarFooter className="border-t border-sidebar-border p-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={activePage === 'about'}
               onClick={() => onNavigate('about')}
-              className={`rounded-lg transition-colors duration-150 h-9 border-l-2 border-l-transparent hover:bg-zinc-800/50 hover:border-l-zinc-600 ${activePage === 'about' ? 'border-l-zinc-500 bg-zinc-600/10 text-zinc-300' : 'text-zinc-400'}`}
+              className={`rounded-lg transition-colors duration-150 h-9 border-l-2 border-l-transparent hover:bg-sidebar-accent hover:border-l-sidebar-border ${activePage === 'about' ? 'border-l-sidebar-border bg-sidebar-accent text-sidebar-foreground' : 'text-muted-foreground'}`}
               tooltip="About"
             >
-              <div className={`flex h-6 w-6 items-center justify-center rounded-md ${activePage === 'about' ? 'bg-white/10' : 'bg-zinc-800/50'} transition-colors`}>
+              <div className={`flex h-6 w-6 items-center justify-center rounded-md ${activePage === 'about' ? 'bg-sidebar-primary/10' : 'bg-sidebar-accent'} transition-colors`}>
                 <Info className="h-3.5 w-3.5" />
               </div>
               <span className="text-[13px] font-medium">About</span>
@@ -216,9 +216,9 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={logout}
-              className="text-zinc-500 hover:text-red-400 hover:bg-red-950/30 transition-colors rounded-lg h-9 border-l-2 border-l-transparent hover:border-l-red-500"
+              className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors rounded-lg h-9 border-l-2 border-l-transparent hover:border-l-red-500"
             >
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-zinc-800/50">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-sidebar-accent">
                 <LogOut className="h-3.5 w-3.5" />
               </div>
               <span className="text-[13px] font-medium">Sign out</span>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ReactFlow, Controls, Background, useNodesState, useEdgesState, BackgroundVariant, type Node, type Edge } from '@xyflow/react';
+import { ReactFlow, Controls, Background, MiniMap, useNodesState, useEdgesState, BackgroundVariant, type Node, type Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useTopologyGraph } from '@/hooks/useTopologyGraph';
 import { getLayoutedElements } from '@/lib/topologyUtils';
@@ -122,37 +122,41 @@ export function TopologyPage({ namespace }: { namespace: string }) {
   }
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
-      <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col">
+      {/* ── Toolbar ── */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background shrink-0">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-white mb-1">Network Topology</h2>
-          <p className="text-sm text-zinc-400">Visual mapping of traffic flow for namespace: <span className="text-blue-400 font-mono">{namespace}</span></p>
+          <h2 className="text-lg font-semibold tracking-tight">Network Topology</h2>
+          <p className="text-xs text-muted-foreground">Namespace: <span className="text-primary font-mono">{namespace}</span></p>
         </div>
         <div className="relative w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-          <Input autoComplete="off" spellCheck={false} 
-             placeholder="Search nodes by name or kind…" 
-             className="pl-9 bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-500 focus-visible:ring-zinc-700"
-             value={searchQuery}
-             onChange={(e) => setSearchQuery(e.target.value)}
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="Search by name or kind…"
+            className="pl-9"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="w-full relative h-[75vh] min-h-[600px] border border-zinc-800 rounded-xl overflow-hidden bg-zinc-950">
+      {/* ── Canvas ── */}
+      <div className="relative flex-1 min-h-0 bg-muted/20">
         {initialNodes.length === 0 && showMockup && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-indigo-500/10 border border-indigo-500/30 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-3">
-             <span className="text-sm font-medium text-indigo-300 flex items-center gap-2">
-                 ✨ Viewing Mockup Architecture: Angkor Wat
-             </span>
-             <button onClick={() => setShowMockup(false)} className="text-indigo-400 hover:text-white transition-colors">
-                <X className="h-4 w-4" />
-             </button>
+            <span className="text-sm font-medium text-indigo-500 dark:text-indigo-300 flex items-center gap-2">
+              ✨ Viewing Mockup Architecture: Angkor Wat
+            </span>
+            <button onClick={() => setShowMockup(false)} className="text-indigo-400 hover:text-foreground transition-colors">
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
         {nodes.length > 0 ? (
-           <ReactFlow
+          <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
@@ -161,14 +165,20 @@ export function TopologyPage({ namespace }: { namespace: string }) {
             onPaneClick={() => setSelectedNodeId(null)}
             nodeTypes={nodeTypes}
             fitView
-            className="bg-black/40"
+            className="h-full w-full"
           >
-            <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#3f3f46" />
-            <Controls className="bg-zinc-900 border-zinc-800 fill-zinc-400" />
+            <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="hsl(var(--border))" />
+            <Controls />
+            <MiniMap
+              nodeStrokeWidth={3}
+              pannable
+              zoomable
+              className="!bg-background !border-border"
+            />
           </ReactFlow>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-zinc-500">
-             No network resources found to map in this namespace.
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+            No network resources found to map in this namespace.
           </div>
         )}
       </div>
