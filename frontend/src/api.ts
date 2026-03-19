@@ -52,12 +52,20 @@ export const authApi = {
 
 // ── Clusters ───────────────────────────────────────────────────────────────
 
+export interface ClusterHealth {
+  kubernetesVersion: string;
+  platform: string;
+  nodes: { ready: number; total: number };
+  pods: { total: number; running: number; pending: number; failed: number };
+}
+
 export const clusterApi = {
   getClusters: () => request<any[]>('/clusters').then(d => d || []),
-  createCluster: (name: string, kubeconfig: string) => 
+  getClusterHealth: () => request<ClusterHealth>('/cluster/health'),
+  createCluster: (name: string, serverUrl: string, token: string, caCert?: string) =>
     request<any>('/clusters', {
       method: 'POST',
-      body: JSON.stringify({ name, kubeconfig })
+      body: JSON.stringify({ name, serverUrl, token, caCert: caCert ?? '' })
     }),
   deleteCluster: (id: number) => 
     request<void>(`/clusters/${id}`, { method: 'DELETE' })

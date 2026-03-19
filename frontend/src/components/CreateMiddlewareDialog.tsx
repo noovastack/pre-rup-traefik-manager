@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 
 import {
   Dialog,
@@ -29,9 +29,6 @@ export function CreateMiddlewareDialog({
   namespace: string;
   editMw?: any;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
-  
   // Shared State
   const [name, setName] = useState('');
   const [mwType, setMwType] = useState<MiddlewareType>('StripPrefix');
@@ -72,16 +69,16 @@ export function CreateMiddlewareDialog({
         setBurst('');
         setPluginJson('');
       }
-      setError('');
+      clearError();
     }
   }, [open, editMw]);
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name for the middleware.");
 
       let spec: any = {};
-      
+
       if (mwType === 'StripPrefix') {
         if (!prefixes) throw new Error("Please provide at least one prefix.");
         spec = { stripPrefix: { prefixes: prefixes.split(',').map(s => s.trim()) } };
@@ -117,13 +114,8 @@ export function CreateMiddlewareDialog({
         return k8sApi.createMiddleware(namespace, crd);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['middlewares', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editMw ? 'update' : 'create'} middleware`);
-    }
+    invalidateKeys: [['middlewares', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   return (
@@ -154,7 +146,6 @@ export function CreateMiddlewareDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="name"
                 name="name"
-                autoComplete="off"
                 disabled={!!editMw}
                 placeholder="e.g. secure-api, strip-v1"
                 className={`bg-zinc-900 border-zinc-800 focus-visible:ring-emerald-500 placeholder:text-zinc-600 transition-colors ${editMw ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -189,7 +180,6 @@ export function CreateMiddlewareDialog({
                 <Input autoComplete="off" spellCheck={false}
                   id="prefixes"
                   name="prefixes"
-                  autoComplete="off"
                   placeholder="e.g. /api, /v1, /foo"
                   className="bg-zinc-950 border-zinc-800 focus-visible:ring-emerald-500 placeholder:text-zinc-600 transition-colors"
                   value={prefixes}
@@ -205,7 +195,6 @@ export function CreateMiddlewareDialog({
                 <Input autoComplete="off" spellCheck={false}
                   id="secretName"
                   name="secretName"
-                  autoComplete="off"
                   placeholder="e.g. my-auth-secret"
                   className="bg-zinc-950 border-zinc-800 focus-visible:ring-emerald-500 placeholder:text-zinc-600 transition-colors"
                   value={secretName}
@@ -223,7 +212,6 @@ export function CreateMiddlewareDialog({
                     id="average"
                     name="average"
                     type="number"
-                    autoComplete="off"
                     placeholder="100"
                     className="bg-zinc-950 border-zinc-800 focus-visible:ring-emerald-500 placeholder:text-zinc-600 transition-colors"
                     value={average}
@@ -236,7 +224,6 @@ export function CreateMiddlewareDialog({
                     id="burst"
                     name="burst"
                     type="number"
-                    autoComplete="off"
                     placeholder="50"
                     className="bg-zinc-950 border-zinc-800 focus-visible:ring-emerald-500 placeholder:text-zinc-600 transition-colors"
                     value={burst}
@@ -252,7 +239,6 @@ export function CreateMiddlewareDialog({
                 <textarea
                   id="pluginJson"
                   name="pluginJson"
-                  autoComplete="off"
                   rows={6}
                   placeholder={`{\n  "demo": {\n    "headers": {\n      "Foo": "Bar"\n    }\n  }\n}`}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-md focus-visible:ring-1 focus-visible:ring-emerald-500 focus-visible:outline-none placeholder:text-zinc-600 transition-colors p-3 font-mono text-xs text-zinc-300 resize-none"
@@ -273,12 +259,12 @@ export function CreateMiddlewareDialog({
           >
             Cancel
           </Button>
-            <Button 
-            onClick={() => createMutation.mutate()} 
-            disabled={createMutation.isPending}
+            <Button
+            onClick={() => submit()}
+            disabled={isPending}
             className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 transition-colors border-0"
           >
-            {createMutation.isPending ? 'Deploying…' : (editMw ? 'Update CRD' : 'Deploy CRD')}
+            {isPending ? 'Deploying…' : (editMw ? 'Update CRD' : 'Deploy CRD')}
           </Button>
         </DialogFooter>
       </DialogContent>

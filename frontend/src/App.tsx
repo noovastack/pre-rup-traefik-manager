@@ -19,8 +19,11 @@ import HTTPRoutesPage from '@/pages/HTTPRoutesPage';
 import ObservabilityPage from '@/pages/ObservabilityPage';
 import { PluginsPage } from '@/pages/PluginsPage';
 import { TopologyPage } from '@/pages/TopologyPage';
+import AboutPage from '@/pages/AboutPage';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Toaster } from 'sonner';
 
-export type Page = 'dashboard' | 'topology' | 'ingressroutes' | 'ingressroutetcps' | 'ingressrouteudps' | 'traefikservices' | 'serverstransports' | 'middlewares' | 'middlewaretcps' | 'tlsoptions' | 'gatewayclasses' | 'gateways' | 'httproutes' | 'observability' | 'plugins';
+export type Page = 'dashboard' | 'topology' | 'ingressroutes' | 'ingressroutetcps' | 'ingressrouteudps' | 'traefikservices' | 'serverstransports' | 'middlewares' | 'middlewaretcps' | 'tlsoptions' | 'gatewayclasses' | 'gateways' | 'httproutes' | 'observability' | 'plugins' | 'about';
 
 function AppContent() {
   const [page, setPage] = useState<Page>('dashboard');
@@ -63,6 +66,7 @@ function AppContent() {
                 {page === 'httproutes' && `HTTPRoutes (${activeNamespace})`}
                 {page === 'observability' && `Observability (${activeNamespace})`}
                 {page === 'plugins' && `Plugins (${activeNamespace})`}
+                {page === 'about' && 'About'}
               </h1>
             </div>
           </header>
@@ -84,6 +88,7 @@ function AppContent() {
               {page === 'httproutes' && <HTTPRoutesPage namespace={activeNamespace} />}
               {page === 'observability' && <ObservabilityPage namespace={activeNamespace} />}
               {page === 'plugins' && <PluginsPage namespace={activeNamespace} />}
+              {page === 'about' && <AboutPage />}
             </div>
           </div>
         </main>
@@ -100,7 +105,10 @@ export default function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
       <QueryClientProvider client={queryClient}>
-        <AppContent />
+        <ErrorBoundary>
+          <AppContent />
+        </ErrorBoundary>
+        <Toaster richColors position="bottom-right" />
       </QueryClientProvider>
     </ThemeProvider>
   );

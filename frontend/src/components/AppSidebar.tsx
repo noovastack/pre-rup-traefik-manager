@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Route, ShieldAlert, LogOut, ChevronDown, LockKeyhole, Server, Network, Globe, Activity, Blocks, Map } from 'lucide-react';
+import { LayoutDashboard, Route, ShieldAlert, LogOut, ChevronDown, LockKeyhole, Server, Network, Globe, Activity, Blocks, Map, Info } from 'lucide-react';
 import type { Page } from '@/App';
 import { useAuth } from '@/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -200,6 +200,19 @@ export function AppSidebar({
       {/* ── Footer ─────────────────────────────────────────────────── */}
       <SidebarFooter className="border-t border-zinc-800/40 p-3">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={activePage === 'about'}
+              onClick={() => onNavigate('about')}
+              className={`rounded-lg transition-colors duration-150 h-9 border-l-2 border-l-transparent hover:bg-zinc-800/50 hover:border-l-zinc-600 ${activePage === 'about' ? 'border-l-zinc-500 bg-zinc-600/10 text-zinc-300' : 'text-zinc-400'}`}
+              tooltip="About"
+            >
+              <div className={`flex h-6 w-6 items-center justify-center rounded-md ${activePage === 'about' ? 'bg-white/10' : 'bg-zinc-800/50'} transition-colors`}>
+                <Info className="h-3.5 w-3.5" />
+              </div>
+              <span className="text-[13px] font-medium">About</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={logout}

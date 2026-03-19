@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import yaml from 'js-yaml';
 
 import {
@@ -28,8 +29,6 @@ export function CreateHTTPRouteDialog({
   namespace: string;
   editRoute?: any;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   
   const [name, setName] = useState('');
@@ -87,7 +86,7 @@ export function CreateHTTPRouteDialog({
         setHostnames('');
         setRules([{ pathMatch: '/', backendName: '', backendPort: '80', weight: '1' }]);
       }
-      setError('');
+      clearError();
       setShowPreview(false);
     }
   }, [open, editRoute]);
@@ -140,7 +139,7 @@ export function CreateHTTPRouteDialog({
     };
   };
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name.");
       if (!parentGateway) throw new Error("Please provide a Parent Gateway name.");
@@ -189,13 +188,8 @@ export function CreateHTTPRouteDialog({
         return k8sApi.createHTTPRoute(namespace, crd as any);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['httproutes', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editRoute ? 'update' : 'create'} HTTPRoute`);
-    }
+    invalidateKeys: [['httproutes', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   return (
@@ -235,7 +229,6 @@ export function CreateHTTPRouteDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="name"
                 name="name"
-                autoComplete="off"
                 disabled={!!editRoute}
                 placeholder="e.g. web-route"
                 className={`bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 placeholder:text-zinc-600 transition-colors ${editRoute ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -273,7 +266,6 @@ export function CreateHTTPRouteDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="hostnames"
                 name="hostnames"
-                autoComplete="off"
                 placeholder="e.g. example.com, *.example.com (optional)"
                 className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 placeholder:text-zinc-600 transition-colors"
                 value={hostnames}
@@ -392,12 +384,12 @@ export function CreateHTTPRouteDialog({
             >
               Cancel
             </Button>
-            <Button 
-              onClick={() => createMutation.mutate()} 
-              disabled={createMutation.isPending}
+            <Button
+              onClick={() => submit()}
+              disabled={isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-colors border-0"
             >
-              {createMutation.isPending ? 'Deploying…' : (editRoute ? 'Update CRD' : 'Deploy CRD')}
+              {isPending ? 'Deploying…' : (editRoute ? 'Update CRD' : 'Deploy CRD')}
             </Button>
           </div>
         </DialogFooter>

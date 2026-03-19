@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { ChevronDown, Plus, Server, Trash2, Loader2 } from 'lucide-react';
 
 export function ClusterSwitcher() {
@@ -13,7 +14,9 @@ export function ClusterSwitcher() {
   const [activeCluster, setActiveCluster] = useState(() => localStorage.getItem('tm_cluster') || 'local');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newClusterName, setNewClusterName] = useState('');
-  const [newKubeconfig, setNewKubeconfig] = useState('');
+  const [newServerUrl, setNewServerUrl] = useState('');
+  const [newToken, setNewToken] = useState('');
+  const [newCaCert, setNewCaCert] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const { data: clusters = [] } = useQuery({
@@ -22,12 +25,14 @@ export function ClusterSwitcher() {
   });
 
   const createMutation = useMutation({
-    mutationFn: () => clusterApi.createCluster(newClusterName, newKubeconfig),
+    mutationFn: () => clusterApi.createCluster(newClusterName, newServerUrl, newToken, newCaCert),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['clusters'] });
       setIsAddOpen(false);
       setNewClusterName('');
-      setNewKubeconfig('');
+      setNewServerUrl('');
+      setNewToken('');
+      setNewCaCert('');
       setErrorMsg('');
       handleClusterChange(data.name);
     },
@@ -110,35 +115,60 @@ export function ClusterSwitcher() {
       </DropdownMenu>
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-zinc-950 border-zinc-800 text-zinc-100">
+        <DialogContent className="sm:max-w-[550px] bg-zinc-950 border-zinc-800 text-zinc-100">
           <DialogHeader>
             <DialogTitle>Add Remote Cluster</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Provide a raw Kubeconfig YAML file. Credentials will be securely AES-GCM encrypted in the SQLite database before storage.
+              Provide the API server URL and a bearer token. Credentials will be AES-GCM encrypted before storage.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="gap-2">
-              <label className="text-sm font-medium text-zinc-400">Cluster Name</label>
-              <Input 
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-zinc-400">Cluster Name</Label>
+              <Input
                 name="clusterName"
                 autoComplete="off"
                 spellCheck={false}
                 value={newClusterName}
                 onChange={(e) => setNewClusterName(e.target.value)}
                 placeholder="e.g. prod-us-east-1"
-                className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 mt-1"
+                className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500"
               />
             </div>
-            <div className="gap-2">
-              <label className="text-sm font-medium text-zinc-400">Kubeconfig (YAML)</label>
-              <Textarea 
-                name="kubeconfig"
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-zinc-400">API Server URL</Label>
+              <Input
+                name="serverUrl"
+                autoComplete="off"
                 spellCheck={false}
-                value={newKubeconfig}
-                onChange={(e) => setNewKubeconfig(e.target.value)}
-                placeholder="Paste your raw kubeconfig YAML here…"
-                className="font-mono text-xs bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 h-[250px] mt-1 whitespace-pre"
+                value={newServerUrl}
+                onChange={(e) => setNewServerUrl(e.target.value)}
+                placeholder="https://your-cluster:6443"
+                className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 font-mono text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-zinc-400">Bearer Token</Label>
+              <Input
+                type="password"
+                name="token"
+                autoComplete="off"
+                spellCheck={false}
+                value={newToken}
+                onChange={(e) => setNewToken(e.target.value)}
+                placeholder="eyJhbGciOiJSUzI1NiIs…"
+                className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 font-mono text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-zinc-400">CA Certificate (Optional)</Label>
+              <Textarea
+                name="caCert"
+                spellCheck={false}
+                value={newCaCert}
+                onChange={(e) => setNewCaCert(e.target.value)}
+                placeholder="Paste PEM-encoded CA cert here, or leave blank to skip TLS verification…"
+                className="font-mono text-xs bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 h-[120px] whitespace-pre"
               />
             </div>
             {errorMsg && (
@@ -151,9 +181,9 @@ export function ClusterSwitcher() {
             <Button variant="outline" onClick={() => { setIsAddOpen(false); setErrorMsg(''); }} className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300">
               Cancel
             </Button>
-            <Button 
-              onClick={() => createMutation.mutate()} 
-              disabled={!newClusterName || !newKubeconfig || createMutation.isPending}
+            <Button
+              onClick={() => createMutation.mutate()}
+              disabled={!newClusterName || !newServerUrl || !newToken || createMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {createMutation.isPending ? 'Connecting…' : 'Connect & Encrypt'}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import yaml from 'js-yaml';
 
 import {
@@ -25,8 +25,6 @@ export function CreateGatewayClassDialog({
   onOpenChange: (open: boolean) => void;
   editClass?: any;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   
   const [name, setName] = useState('');
@@ -44,7 +42,7 @@ export function CreateGatewayClassDialog({
         setControllerName('traefik.io/gateway-controller');
         setDescription('');
       }
-      setError('');
+      clearError();
       setShowPreview(false);
     }
   }, [open, editClass]);
@@ -63,7 +61,7 @@ export function CreateGatewayClassDialog({
     };
   };
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name.");
       if (!controllerName) throw new Error("Please provide a controller name.");
@@ -76,13 +74,8 @@ export function CreateGatewayClassDialog({
         return k8sApi.createGatewayClass(crd as any);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['gatewayclasses'] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editClass ? 'update' : 'create'} GatewayClass`);
-    }
+    invalidateKeys: [['gatewayclasses']],
+    onClose: () => onOpenChange(false),
   });
 
   return (
@@ -122,7 +115,6 @@ export function CreateGatewayClassDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="name"
                 name="name"
-                autoComplete="off"
                 disabled={!!editClass}
                 placeholder="e.g. traefik"
                 className={`bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 placeholder:text-zinc-600 transition-colors ${editClass ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -138,7 +130,6 @@ export function CreateGatewayClassDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="controllerName"
                 name="controllerName"
-                autoComplete="off"
                 placeholder="e.g. traefik.io/gateway-controller"
                 className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 placeholder:text-zinc-600 transition-colors"
                 value={controllerName}
@@ -154,7 +145,6 @@ export function CreateGatewayClassDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="description"
                 name="description"
-                autoComplete="off"
                 placeholder="Optional description"
                 className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 placeholder:text-zinc-600 transition-colors"
                 value={description}
@@ -183,12 +173,12 @@ export function CreateGatewayClassDialog({
             >
               Cancel
             </Button>
-            <Button 
-              onClick={() => createMutation.mutate()} 
-              disabled={createMutation.isPending}
+            <Button
+              onClick={() => submit()}
+              disabled={isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-colors border-0"
             >
-              {createMutation.isPending ? 'Deploying…' : (editClass ? 'Update CRD' : 'Deploy CRD')}
+              {isPending ? 'Deploying…' : (editClass ? 'Update CRD' : 'Deploy CRD')}
             </Button>
           </div>
         </DialogFooter>

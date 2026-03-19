@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import yaml from 'js-yaml';
 import type { IngressRouteTCP } from '@/types';
 
@@ -30,8 +31,6 @@ export function CreateIngressRouteTCPDialog({
   namespace: string;
   editRoute?: IngressRouteTCP;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   
   const [name, setName] = useState('');
@@ -73,7 +72,7 @@ export function CreateIngressRouteTCPDialog({
         setTls(false);
         setPassthrough(false);
       }
-      setError('');
+      clearError();
       setShowPreview(false);
     }
   }, [open, editRoute]);
@@ -114,7 +113,7 @@ export function CreateIngressRouteTCPDialog({
     return crd;
   };
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name || !matchrule || !serviceName || !servicePort) {
         throw new Error("Please fill in all required fields.");
@@ -128,13 +127,8 @@ export function CreateIngressRouteTCPDialog({
         return k8sApi.createIngressRouteTCP(namespace, crd);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ingressroutetcps', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editRoute ? 'update' : 'create'} TCP route`);
-    },
+    invalidateKeys: [['ingressroutetcps', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   const selectedServiceObj = services.find(s => s.name === serviceName);
@@ -154,7 +148,7 @@ export function CreateIngressRouteTCPDialog({
           </DialogHeader>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <div className="p-6 space-y-5">
             {error && (
               <div className="bg-red-950/50 border border-red-900 text-red-400 p-3 rounded-md text-sm flex items-start gap-2">
@@ -267,8 +261,8 @@ export function CreateIngressRouteTCPDialog({
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:text-white hover:bg-zinc-800">
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || !name || !matchrule || !serviceName || !servicePort} className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/20 border-0 px-8">
-                {createMutation.isPending ? 'Deploying…' : (editRoute ? 'Update' : 'Deploy')}
+              <Button type="submit" disabled={isPending || !name || !matchrule || !serviceName || !servicePort} className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/20 border-0 px-8">
+                {isPending ? 'Deploying…' : (editRoute ? 'Update' : 'Deploy')}
               </Button>
             </div>
           </DialogFooter>

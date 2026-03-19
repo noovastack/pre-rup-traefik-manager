@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import yaml from 'js-yaml';
 
 import {
@@ -28,8 +29,6 @@ export function CreateGatewayDialog({
   namespace: string;
   editGateway?: any;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   
   const [name, setName] = useState('');
@@ -61,7 +60,7 @@ export function CreateGatewayDialog({
         setGatewayClassName('traefik');
         setListeners([{ name: 'web', port: '80', protocol: 'HTTP', hostname: '' }]);
       }
-      setError('');
+      clearError();
       setShowPreview(false);
     }
   }, [open, editGateway]);
@@ -100,7 +99,7 @@ export function CreateGatewayDialog({
     };
   };
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name.");
       if (!gatewayClassName) throw new Error("Please provide a GatewayClass name.");
@@ -120,13 +119,8 @@ export function CreateGatewayDialog({
         return k8sApi.createGateway(namespace, crd as any);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['gateways', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editGateway ? 'update' : 'create'} Gateway`);
-    }
+    invalidateKeys: [['gateways', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   return (
@@ -166,7 +160,6 @@ export function CreateGatewayDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="name"
                 name="name"
-                autoComplete="off"
                 disabled={!!editGateway}
                 placeholder="e.g. my-gateway"
                 className={`bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500 placeholder:text-zinc-600 transition-colors ${editGateway ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -295,12 +288,12 @@ export function CreateGatewayDialog({
             >
               Cancel
             </Button>
-            <Button 
-              onClick={() => createMutation.mutate()} 
-              disabled={createMutation.isPending}
+            <Button
+              onClick={() => submit()}
+              disabled={isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-colors border-0"
             >
-              {createMutation.isPending ? 'Deploying…' : (editGateway ? 'Update CRD' : 'Deploy CRD')}
+              {isPending ? 'Deploying…' : (editGateway ? 'Update CRD' : 'Deploy CRD')}
             </Button>
           </div>
         </DialogFooter>

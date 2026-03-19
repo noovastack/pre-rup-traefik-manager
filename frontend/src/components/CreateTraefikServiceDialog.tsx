@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import yaml from 'js-yaml';
 import type { TraefikService } from '@/types';
 
@@ -31,8 +32,6 @@ export function CreateTraefikServiceDialog({
   namespace: string;
   editService?: TraefikService;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   
   const [name, setName] = useState('');
@@ -87,7 +86,7 @@ export function CreateTraefikServiceDialog({
         setPrimaryService({ name: '', port: '' });
         setMirrors([{ name: '', port: '', percent: '10' }]);
       }
-      setError('');
+      clearError();
       setShowPreview(false);
     }
   }, [open, editService]);
@@ -128,7 +127,7 @@ export function CreateTraefikServiceDialog({
     return crd;
   };
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Service name is required.");
 
@@ -140,13 +139,8 @@ export function CreateTraefikServiceDialog({
         return k8sApi.createTraefikService(namespace, crd);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['traefikservices', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editService ? 'update' : 'create'} TraefikService`);
-    },
+    invalidateKeys: [['traefikservices', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   const renderServiceSelect = (val: string, onChange: (v: string) => void) => (
@@ -179,7 +173,7 @@ export function CreateTraefikServiceDialog({
           </DialogHeader>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <div className="p-6 space-y-5">
             {error && (
               <div className="bg-red-950/50 border border-red-900 text-red-400 p-3 rounded-md text-sm flex items-start gap-2">
@@ -346,8 +340,8 @@ export function CreateTraefikServiceDialog({
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:text-white hover:bg-zinc-800">
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || !name} className={`font-medium shadow-lg border-0 px-8 text-white ${type === 'weighted' ? 'bg-orange-600 hover:bg-orange-500 shadow-orange-500/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20'}`}>
-                {createMutation.isPending ? 'Saving…' : (editService ? 'Update' : 'Deploy')}
+              <Button type="submit" disabled={isPending || !name} className={`font-medium shadow-lg border-0 px-8 text-white ${type === 'weighted' ? 'bg-orange-600 hover:bg-orange-500 shadow-orange-500/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20'}`}>
+                {isPending ? 'Saving…' : (editService ? 'Update' : 'Deploy')}
               </Button>
             </div>
           </DialogFooter>

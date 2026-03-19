@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import type { IngressRoute } from '@/types';
 
 import {
@@ -81,9 +82,6 @@ export function CreateIngressRouteDialog({
   namespace: string;
   editRoute?: IngressRoute;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
-  
   // Form State
   const [name, setName] = useState('');
   const [host, setHost] = useState('');
@@ -163,7 +161,7 @@ export function CreateIngressRouteDialog({
         setTls(false);
         setCertResolver('default');
       }
-      setError('');
+      clearError();
     }
   }, [open, editRoute]);
 
@@ -177,7 +175,7 @@ export function CreateIngressRouteDialog({
     }
   }, [serviceName, services]);
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name || !host || !serviceName || !servicePort) {
         throw new Error("Please fill in all required fields.");
@@ -223,13 +221,8 @@ export function CreateIngressRouteDialog({
         return k8sApi.createIngressRoute(namespace, crd);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ingressroutes', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editRoute ? 'update' : 'create'} route`);
-    },
+    invalidateKeys: [['ingressroutes', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   const selectedServiceObj = services.find(s => s.name === serviceName);
@@ -249,7 +242,7 @@ export function CreateIngressRouteDialog({
           </DialogHeader>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <div className="p-6 space-y-5">
             {error && (
               <div className="bg-red-950/50 border border-red-900 text-red-400 p-3 rounded-md text-sm flex items-start gap-2">
@@ -400,8 +393,8 @@ export function CreateIngressRouteDialog({
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:text-white hover:bg-zinc-800">
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending || !name || !host || !serviceName || !servicePort} className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/20 border-0 px-8">
-              {createMutation.isPending ? 'Deploying…' : (editRoute ? 'Update Route' : 'Deploy Route')}
+            <Button type="submit" disabled={isPending || !name || !host || !serviceName || !servicePort} className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/20 border-0 px-8">
+              {isPending ? 'Deploying…' : (editRoute ? 'Update Route' : 'Deploy Route')}
             </Button>
           </DialogFooter>
         </form>

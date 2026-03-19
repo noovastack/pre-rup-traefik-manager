@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import yaml from 'js-yaml';
 import type { ServersTransport } from '@/types';
 
@@ -29,8 +29,6 @@ export function CreateServersTransportDialog({
   namespace: string;
   editTransport?: ServersTransport;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   
   const [name, setName] = useState('');
@@ -54,7 +52,7 @@ export function CreateServersTransportDialog({
         setCertificatesSecrets('');
         setRootCAsSecrets('');
       }
-      setError('');
+      clearError();
       setShowPreview(false);
     }
   }, [open, editTransport]);
@@ -76,7 +74,7 @@ export function CreateServersTransportDialog({
     return crd;
   };
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("ServersTransport name is required.");
 
@@ -88,13 +86,8 @@ export function CreateServersTransportDialog({
         return k8sApi.createServersTransport(namespace, crd);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['serverstransports', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editTransport ? 'update' : 'create'} ServersTransport`);
-    },
+    invalidateKeys: [['serverstransports', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   return (
@@ -112,7 +105,7 @@ export function CreateServersTransportDialog({
           </DialogHeader>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <div className="p-6 space-y-5">
             {error && (
               <div className="bg-red-950/50 border border-red-900 text-red-400 p-3 rounded-md text-sm flex items-start gap-2">
@@ -176,8 +169,8 @@ export function CreateServersTransportDialog({
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:text-white hover:bg-zinc-800">
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || !name} className="bg-pink-600 hover:bg-pink-500 text-white font-medium shadow-lg shadow-pink-500/20 border-0 px-8">
-                {createMutation.isPending ? 'Saving…' : (editTransport ? 'Update' : 'Deploy')}
+              <Button type="submit" disabled={isPending || !name} className="bg-pink-600 hover:bg-pink-500 text-white font-medium shadow-lg shadow-pink-500/20 border-0 px-8">
+                {isPending ? 'Saving…' : (editTransport ? 'Update' : 'Deploy')}
               </Button>
             </div>
           </DialogFooter>

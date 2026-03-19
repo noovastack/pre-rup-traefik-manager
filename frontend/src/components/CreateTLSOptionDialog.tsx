@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import { useResourceForm } from '@/hooks/useResourceForm';
 import yaml from 'js-yaml';
 
 import {
@@ -28,8 +28,6 @@ export function CreateTLSOptionDialog({
   namespace: string;
   editOption?: any;
 }) {
-  const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   
   const [name, setName] = useState('');
@@ -50,7 +48,7 @@ export function CreateTLSOptionDialog({
         setCipherSuites([]);
       }
       setNewCipher('');
-      setError('');
+      clearError();
       setShowPreview(false);
     }
   }, [open, editOption]);
@@ -86,7 +84,7 @@ export function CreateTLSOptionDialog({
     return crd;
   };
 
-  const createMutation = useMutation({
+  const { error, clearError, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name for the TLS Option.");
 
@@ -98,13 +96,8 @@ export function CreateTLSOptionDialog({
         return k8sApi.createTlsOption(namespace, crd);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tlsoptions', namespace] });
-      onOpenChange(false);
-    },
-    onError: (err: Error) => {
-      setError(err.message || `Failed to ${editOption ? 'update' : 'create'} TLS Option`);
-    }
+    invalidateKeys: [['tlsoptions', namespace]],
+    onClose: () => onOpenChange(false),
   });
 
   return (
@@ -147,7 +140,6 @@ export function CreateTLSOptionDialog({
               <Input autoComplete="off" spellCheck={false}
                 id="name"
                 name="name"
-                autoComplete="off"
                 disabled={!!editOption}
                 placeholder="e.g. strict-tls"
                 className={`bg-zinc-900 border-zinc-800 focus-visible:ring-teal-500 placeholder:text-zinc-600 transition-colors ${editOption ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -239,12 +231,12 @@ export function CreateTLSOptionDialog({
             >
               Cancel
             </Button>
-            <Button 
-              onClick={() => createMutation.mutate()} 
-              disabled={createMutation.isPending}
+            <Button
+              onClick={() => submit()}
+              disabled={isPending}
               className="bg-teal-600 hover:bg-teal-500 text-white shadow-lg shadow-teal-500/20 transition-colors transition-opacity border-0 px-8 font-medium"
             >
-              {createMutation.isPending ? 'Deploying…' : (editOption ? 'Update Option' : 'Deploy Option')}
+              {isPending ? 'Deploying…' : (editOption ? 'Update Option' : 'Deploy Option')}
             </Button>
           </div>
         </DialogFooter>
