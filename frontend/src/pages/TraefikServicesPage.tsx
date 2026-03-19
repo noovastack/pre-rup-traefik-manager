@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
 import yaml from 'js-yaml';
 import { Trash2, Edit, SplitSquareHorizontal, Code } from 'lucide-react';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 
 import {
   Table,
@@ -21,6 +23,7 @@ export function TraefikServicesPage({ namespace }: { namespace: string }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingService, setEditingService] = useState<any>(undefined);
   const [yamlService, setYamlService] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: services = [], isLoading, error } = useQuery({
     queryKey: ['traefikservices', namespace],
@@ -34,8 +37,18 @@ export function TraefikServicesPage({ namespace }: { namespace: string }) {
     },
   });
 
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
+  });
+
   if (isLoading) return <div className="p-8 text-zinc-400 animate-pulse">Loading TraefikServices…</div>;
   if (error) return <div className="p-8 text-red-400 bg-red-950/20 border border-red-900 rounded-lg">Error loading TraefikServices: {(error as Error).message}</div>;
+
+  if (caps && !caps.traefik) {
+    return <CRDNotInstalled crdGroup="Traefik" apiGroup="traefik.io" description="Advanced load balancing and mirroring" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -158,14 +171,12 @@ export function TraefikServicesPage({ namespace }: { namespace: string }) {
                           <Edit className="h-4 w-4 mr-1.5" />
                           Edit
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           className="h-8 text-zinc-500 hover:text-red-400 hover:bg-red-950/50"
                           onClick={() => {
-                            if (confirm(`Delete TraefikService ${svc.metadata.name}?`)) {
-                              deleteMutation.mutate(svc.metadata.name);
-                            }
+                            setDeleteTarget(svc.metadata.name);
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -188,6 +199,14 @@ export function TraefikServicesPage({ namespace }: { namespace: string }) {
         }}
         namespace={namespace}
         editService={editingService}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="TraefikService"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
 
       <Dialog open={!!yamlService} onOpenChange={(open) => !open && setYamlService(null)}>

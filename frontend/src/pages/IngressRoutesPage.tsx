@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2, Globe, Lock, Edit2 } from 'lucide-react';
 import type { IngressRoute } from '@/types';
 import { CreateIngressRouteDialog } from '@/components/CreateIngressRouteDialog';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 
 export function IngressRoutesPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<IngressRoute | undefined>(undefined);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: routes = [], isLoading } = useQuery({
     queryKey: ['ingressroutes', namespace],
@@ -23,8 +26,18 @@ export function IngressRoutesPage({ namespace }: { namespace: string }) {
     },
   });
 
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
+  });
+
   if (isLoading) {
     return <div className="text-zinc-500 animate-pulse">Loading IngressRoutes…</div>;
+  }
+
+  if (caps && !caps.traefik) {
+    return <CRDNotInstalled crdGroup="Traefik" apiGroup="traefik.io" description="HTTP and HTTPS routing rules" />;
   }
 
   return (
@@ -96,9 +109,7 @@ export function IngressRoutesPage({ namespace }: { namespace: string }) {
                   size="icon" 
                   className="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-red-950/50"
                   onClick={() => {
-                    if (confirm('Delete this route entirely from the cluster?')) {
-                      deleteMutation.mutate(route.metadata.name);
-                    }
+                    setDeleteTarget(route.metadata.name);
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -109,14 +120,22 @@ export function IngressRoutesPage({ namespace }: { namespace: string }) {
         )}
       </div>
 
-      <CreateIngressRouteDialog 
-        open={createOpen} 
+      <CreateIngressRouteDialog
+        open={createOpen}
         onOpenChange={(val) => {
           setCreateOpen(val);
           if (!val) setEditingRoute(undefined);
         }}
         namespace={namespace}
         editRoute={editingRoute}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="IngressRoute"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
     </div>
   );

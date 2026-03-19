@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
-import { Activity, Globe, Cpu, ShieldAlert, Server, TrendingUp, TrendingDown } from 'lucide-react';
+import { Activity, Globe, Cpu, ShieldAlert, TrendingUp, TrendingDown } from 'lucide-react';
+import { ClusterHealthCard } from '@/components/ClusterHealthCard';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
@@ -247,31 +248,16 @@ export function DashboardPage({ namespace }: { namespace: string }) {
           </CardContent>
         </Card>
 
-        {/* ── Right Column: System Info + Services ──────────────── */}
-        <Card className="md:col-span-3">
-          <CardHeader>
-            <CardTitle>System Integration</CardTitle>
-            <CardDescription>Kubernetes API connection status</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
-                <Server className="h-4 w-4 text-emerald-500" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Connected</p>
-                <p className="text-xs text-muted-foreground">Traefik Manager is securely connected to the Kubernetes API.</p>
-              </div>
-              <div className="h-2 w-2 rounded-full bg-emerald-500 pulse-dot" />
-            </div>
-            <div className="rounded-lg bg-muted/50 p-3 font-mono text-xs text-muted-foreground space-y-1">
-              <div>API Group: <span className="text-foreground">traefik.containo.us/v1alpha1</span></div>
-              <div>Watch Namespace: <span className="text-foreground">{namespace}</span></div>
-            </div>
+        {/* ── Right Column: Cluster Health + Services ───────────── */}
+        <div className="md:col-span-3 space-y-4">
+          <ClusterHealthCard />
 
-            {/* ── Discovered Services mini-list ───────────────────── */}
-            <div className="pt-2">
-              <h4 className="text-sm font-medium mb-3">Discovered Services</h4>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Discovered Services</CardTitle>
+              <CardDescription>Available routing targets in <span className="font-mono">{namespace}</span></CardDescription>
+            </CardHeader>
+            <CardContent>
               {loadingServices ? (
                 <div className="text-xs text-muted-foreground animate-pulse">Loading services…</div>
               ) : !(services || []).length ? (
@@ -296,9 +282,9 @@ export function DashboardPage({ namespace }: { namespace: string }) {
                   )}
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
 import { Button } from '@/components/ui/button';
 import yaml from 'js-yaml';
 import { Plus, Trash2, Edit2, ShieldCheck, LockKeyhole, Code } from 'lucide-react';
 import { CreateTLSOptionDialog } from '@/components/CreateTLSOptionDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 
 export function TLSOptionsPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingOption, setEditingOption] = useState<any>(undefined);
   const [yamlOption, setYamlOption] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: options = [], isLoading } = useQuery({
     queryKey: ['tlsoptions', namespace],
@@ -25,8 +28,18 @@ export function TLSOptionsPage({ namespace }: { namespace: string }) {
     },
   });
 
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
+  });
+
   if (isLoading) {
     return <div className="text-zinc-500 animate-pulse">Loading TLS Options…</div>;
+  }
+
+  if (caps && !caps.traefik) {
+    return <CRDNotInstalled crdGroup="Traefik" apiGroup="traefik.io" description="TLS security policies" />;
   }
 
   return (
@@ -97,9 +110,7 @@ export function TLSOptionsPage({ namespace }: { namespace: string }) {
                     size="icon" 
                     className="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-red-950/50"
                     onClick={() => {
-                      if (confirm(`Delete the TLS Option "${opt.metadata.name}"?`)) {
-                        deleteMutation.mutate(opt.metadata.name);
-                      }
+                      setDeleteTarget(opt.metadata.name);
                     }}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -111,14 +122,22 @@ export function TLSOptionsPage({ namespace }: { namespace: string }) {
         )}
       </div>
 
-      <CreateTLSOptionDialog 
-        open={createOpen} 
+      <CreateTLSOptionDialog
+        open={createOpen}
         onOpenChange={(val) => {
           setCreateOpen(val);
           if (!val) setEditingOption(undefined);
         }}
         namespace={namespace}
         editOption={editingOption}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="TLSOption"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
 
       <Dialog open={!!yamlOption} onOpenChange={(open) => !open && setYamlOption(null)}>

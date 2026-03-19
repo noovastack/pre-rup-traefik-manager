@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
 import yaml from 'js-yaml';
 import { Globe, Plus, Trash2, Edit, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CreateGatewayClassDialog } from '@/components/CreateGatewayClassDialog';
 import type { GatewayClass } from '@/types';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 
 export default function GatewayClassesPage() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<any>(null);
   const [yamlGatewayClass, setYamlGatewayClass] = useState<GatewayClass | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { data: classes = [], isLoading } = useQuery({
     queryKey: ['gatewayclasses'],
     queryFn: () => k8sApi.getGatewayClasses(),
@@ -25,8 +28,18 @@ export default function GatewayClassesPage() {
     },
   });
 
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
+  });
+
   if (isLoading) {
     return <div className="text-zinc-500 animate-pulse">Loading GatewayClasses…</div>;
+  }
+
+  if (caps && !caps.gatewayApi) {
+    return <CRDNotInstalled crdGroup="Gateway API" apiGroup="gateway.networking.k8s.io" description="Gateway API controller classes" />;
   }
 
   return (
@@ -90,7 +103,7 @@ export default function GatewayClassesPage() {
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  onClick={() => { if (window.confirm(`Delete GatewayClass "${gc.metadata.name}"?`)) deleteMutation.mutate(gc.metadata.name); }}
+                  onClick={() => { setDeleteTarget(gc.metadata.name); }}
                   disabled={deleteMutation.isPending}
                   className="bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border-0 transition-colors transition-opacity opacity-0 group-hover:opacity-100"
                 >
@@ -106,6 +119,14 @@ export default function GatewayClassesPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         editClass={editingClass}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="GatewayClass"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
 
       <Dialog open={!!yamlGatewayClass} onOpenChange={(open) => !open && setYamlGatewayClass(null)}>

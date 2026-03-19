@@ -34,7 +34,11 @@ func NewRouter(manager provider.Manager) http.Handler {
 	r.Route("/api/v1", func(r chi.Router) {
 		// Public routes
 		r.Mount("/clusters", NewClusterHandler(manager).Routes())
-		
+
+		// Cluster-level endpoints
+		r.Get("/capabilities", NewCapabilitiesHandler(manager).Get)
+		r.Get("/cluster/health", NewClusterHealthHandler(manager).Get)
+
 		r.Mount("/namespaces", NewNamespaceHandler(manager).Routes())
 		r.Mount("/gatewayclasses", NewGatewayClassHandler(manager).Routes())
 		

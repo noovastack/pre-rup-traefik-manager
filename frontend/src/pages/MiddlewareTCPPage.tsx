@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Check, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -18,6 +20,7 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMiddleware, setEditMiddleware] = useState<MiddlewareTCP | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: middlewares = [], isLoading } = useQuery({
     queryKey: ['middlewaretcps', namespace],
@@ -27,6 +30,12 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
   const deleteMutation = useMutation({
     mutationFn: (name: string) => k8sApi.deleteMiddlewareTCP(namespace, name),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['middlewaretcps'] }),
+  });
+
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
   });
 
   const getMiddlewareType = (mw: MiddlewareTCP) => {
@@ -59,6 +68,10 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
     setEditMiddleware(mw);
     setDialogOpen(true);
   };
+
+  if (caps && !caps.traefik) {
+    return <CRDNotInstalled crdGroup="Traefik" apiGroup="traefik.io" description="TCP traffic processing rules" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -172,7 +185,7 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(mw)} className="h-8 text-xs text-zinc-400 hover:text-white">
                       Edit
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); if (window.confirm(`Delete TCP Middleware "${mw.metadata.name}"?`)) deleteMutation.mutate(mw.metadata.name); }} className="h-8 text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10">
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteTarget(mw.metadata.name); }} className="h-8 text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10">
                       Delete
                     </Button>
                   </div>
@@ -184,13 +197,13 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
       )}
 
       {/* Editor Fallback for specialized Middlewares */}
-      <GenericCRDDialog 
-        open={dialogOpen} 
-        onOpenChange={setDialogOpen} 
-        resource={editMiddleware} 
-        resourceType="middlewaretcp" 
+      <GenericCRDDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        resource={editMiddleware}
+        resourceType="middlewaretcp"
         namespace={namespace}
-        title="TCP Middleware" 
+        title="TCP Middleware"
         yamlTemplate={`spec:
   # Example: Limit TCP connections
   inFlightConn:
@@ -200,6 +213,14 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
   #   sourceRange:
   #     - 127.0.0.1/32
   #     - 192.168.1.7`}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="MiddlewareTCP"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
     </div>
   );

@@ -42,6 +42,17 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return data as T;
 }
 
+// ── Capabilities ────────────────────────────────────────────────────────────
+
+export interface Capabilities {
+  traefik: boolean;
+  gatewayApi: boolean;
+}
+
+export const capabilitiesApi = {
+  get: () => request<Capabilities>('/capabilities'),
+};
+
 export const authApi = {
   login: (username: string, password: string) =>
     request<{ token: string }>('/auth/login', {

@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2, ShieldAlert, Key, Zap, Scissors, Edit2 } from 'lucide-react';
 import { CreateMiddlewareDialog } from '@/components/CreateMiddlewareDialog';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 
 export function MiddlewaresPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingMw, setEditingMw] = useState<any>(undefined);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: middlewares = [], isLoading } = useQuery({
     queryKey: ['middlewares', namespace],
@@ -22,8 +25,18 @@ export function MiddlewaresPage({ namespace }: { namespace: string }) {
     },
   });
 
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
+  });
+
   if (isLoading) {
     return <div className="text-zinc-500 animate-pulse">Loading Middlewares…</div>;
+  }
+
+  if (caps && !caps.traefik) {
+    return <CRDNotInstalled crdGroup="Traefik" apiGroup="traefik.io" description="HTTP traffic processing rules" />;
   }
 
   // Helper to determine what type of middleware it is
@@ -96,9 +109,7 @@ export function MiddlewaresPage({ namespace }: { namespace: string }) {
                     size="icon" 
                     className="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-red-950/50"
                     onClick={() => {
-                      if (confirm(`Delete the middleware "${mw.metadata.name}"?`)) {
-                        deleteMutation.mutate(mw.metadata.name);
-                      }
+                      setDeleteTarget(mw.metadata.name);
                     }}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -110,14 +121,22 @@ export function MiddlewaresPage({ namespace }: { namespace: string }) {
         )}
       </div>
 
-      <CreateMiddlewareDialog 
-        open={createOpen} 
+      <CreateMiddlewareDialog
+        open={createOpen}
         onOpenChange={(val) => {
           setCreateOpen(val);
           if (!val) setEditingMw(undefined);
         }}
         namespace={namespace}
         editMw={editingMw}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="Middleware"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
     </div>
   );

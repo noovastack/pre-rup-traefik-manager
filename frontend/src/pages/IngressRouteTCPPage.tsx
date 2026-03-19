@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
 import yaml from 'js-yaml';
 import { Trash2, Edit, Route, Code } from 'lucide-react';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 
 import {
   Table,
@@ -21,6 +23,7 @@ export function IngressRouteTCPPage({ namespace }: { namespace: string }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<any>(undefined);
   const [yamlRoute, setYamlRoute] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: routes = [], isLoading, error } = useQuery({
     queryKey: ['ingressroutetcps', namespace],
@@ -34,8 +37,18 @@ export function IngressRouteTCPPage({ namespace }: { namespace: string }) {
     },
   });
 
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
+  });
+
   if (isLoading) return <div className="p-8 text-zinc-400 animate-pulse">Loading TCP routes…</div>;
   if (error) return <div className="p-8 text-red-400 bg-red-950/20 border border-red-900 rounded-lg">Error loading routes: {(error as Error).message}</div>;
+
+  if (caps && !caps.traefik) {
+    return <CRDNotInstalled crdGroup="Traefik" apiGroup="traefik.io" description="TCP stream routing rules" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -106,14 +119,12 @@ export function IngressRouteTCPPage({ namespace }: { namespace: string }) {
                         <Edit className="h-4 w-4 mr-1.5" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         className="h-8 text-zinc-500 hover:text-red-400 hover:bg-red-950/50"
                         onClick={() => {
-                          if (confirm(`Delete TCP Route ${route.metadata.name}?`)) {
-                            deleteMutation.mutate(route.metadata.name);
-                          }
+                          setDeleteTarget(route.metadata.name);
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -135,6 +146,14 @@ export function IngressRouteTCPPage({ namespace }: { namespace: string }) {
         }}
         namespace={namespace}
         editRoute={editingRoute}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="IngressRouteTCP"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
 
       <Dialog open={!!yamlRoute} onOpenChange={(open) => !open && setYamlRoute(null)}>

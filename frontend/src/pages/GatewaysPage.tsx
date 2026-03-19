@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { k8sApi } from '@/api';
+import { k8sApi, capabilitiesApi } from '@/api';
 import yaml from 'js-yaml';
 import { Globe, Server, Plus, Trash2, Edit, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CreateGatewayDialog } from '@/components/CreateGatewayDialog';
 import type { Gateway } from '@/types';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 
 export default function GatewaysPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingGateway, setEditingGateway] = useState<any>(null);
   const [yamlGateway, setYamlGateway] = useState<Gateway | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { data: gateways = [], isLoading } = useQuery({
     queryKey: ['gateways', namespace],
     queryFn: () => k8sApi.getGateways(namespace),
@@ -25,8 +28,18 @@ export default function GatewaysPage({ namespace }: { namespace: string }) {
     },
   });
 
+  const { data: caps } = useQuery({
+    queryKey: ['capabilities'],
+    queryFn: capabilitiesApi.get,
+    staleTime: 60000,
+  });
+
   if (isLoading) {
     return <div className="text-zinc-500 animate-pulse">Loading Gateways…</div>;
+  }
+
+  if (caps && !caps.gatewayApi) {
+    return <CRDNotInstalled crdGroup="Gateway API" apiGroup="gateway.networking.k8s.io" description="Gateway API load balancers" />;
   }
 
   return (
@@ -96,7 +109,7 @@ export default function GatewaysPage({ namespace }: { namespace: string }) {
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  onClick={() => { if (window.confirm(`Delete Gateway "${gw.metadata.name}"?`)) deleteMutation.mutate(gw.metadata.name); }}
+                  onClick={() => { setDeleteTarget(gw.metadata.name); }}
                   disabled={deleteMutation.isPending}
                   className="bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border-0 transition-colors transition-opacity opacity-0 group-hover:opacity-100"
                 >
@@ -113,6 +126,14 @@ export default function GatewaysPage({ namespace }: { namespace: string }) {
         onOpenChange={setCreateOpen}
         namespace={namespace}
         editGateway={editingGateway}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        resourceName={deleteTarget ?? ''}
+        resourceType="Gateway"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget!); setDeleteTarget(null); }}
+        isPending={deleteMutation.isPending}
       />
 
       <Dialog open={!!yamlGateway} onOpenChange={(open) => !open && setYamlGateway(null)}>
