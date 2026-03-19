@@ -21,7 +21,6 @@ podSecurityContext: {}
 
 securityContext:
   allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 1000
 
@@ -56,3 +55,17 @@ resources: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# Persistent storage for the SQLite database and encryption key file.
+# Disable only for ephemeral/testing deployments — data will be lost on pod restart.
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""  # Leave empty to use the cluster default StorageClass
+
+# Reference an existing Secret containing the AES-256 encryption key (32-byte hex).
+# If left empty, a key is auto-generated and stored in the /data volume on first start.
+# Example: kubectl create secret generic tm-secrets --from-literal=encryptionKey=<hex>
+encryptionKeySecret:
+  name: ""   # Secret name; leave empty to use auto-generated key
+  key: encryptionKey

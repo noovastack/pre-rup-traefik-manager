@@ -10,10 +10,20 @@ metadata:
   name: traefik-manager
 rules:
   - apiGroups: [""]
-    resources: ["namespaces", "services"]
+    resources: ["namespaces", "services", "nodes", "pods"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["traefik.containo.us", "traefik.io"]
-    resources: ["ingressroutes", "middlewares", "tlsoptions", "tlsstores", "traefikservices", "serverstransports"]
+    resources:
+      - ingressroutes
+      - ingressroutetcps
+      - ingressrouteudps
+      - middlewares
+      - middlewaretcps
+      - tlsoptions
+      - tlsstores
+      - traefikservices
+      - serverstransports
+      - serverstransporttcps
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["gateway.networking.k8s.io"]
     resources: ["gatewayclasses", "gateways", "httproutes"]

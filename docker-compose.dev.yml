@@ -41,7 +41,8 @@ services:
       TM_CONFIG_PATH: /etc/traefik/traefik-manager/dynamic_conf.yaml
       TM_ADDR: :8080
       TM_DOCKER_HOST: http://socket-proxy:2375
-      KUBECONFIG: /app/nova-cluster-k8s-kubeconfig.yaml
+      # To connect to a Kubernetes cluster, mount your kubeconfig and set KUBECONFIG:
+      # KUBECONFIG: /root/.kube/config
     volumes:
       # Mount the entire repository to enable live code edits
       - .:/app

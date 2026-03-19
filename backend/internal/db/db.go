@@ -13,10 +13,12 @@ import (
 var DB *sql.DB
 
 type ClusterRecord struct {
-	ID                  int
-	Name                string
-	EncryptedKubeconfig string
-	CreatedAt           time.Time
+	ID              int
+	Name            string
+	ServerURL       string
+	EncryptedToken  string
+	EncryptedCACert string
+	CreatedAt       time.Time
 }
 
 func InitDB() {
@@ -36,12 +38,13 @@ func InitDB() {
 		log.Fatalf("failed to open sqlite database: %v", err)
 	}
 
-	// Create tables
 	query := `
 	CREATE TABLE IF NOT EXISTS clusters (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT UNIQUE NOT NULL,
-		encrypted_kubeconfig TEXT NOT NULL,
+		server_url TEXT NOT NULL,
+		encrypted_token TEXT NOT NULL,
+		encrypted_ca_cert TEXT NOT NULL DEFAULT '',
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`
 
@@ -50,9 +53,9 @@ func InitDB() {
 	}
 }
 
-// GetClusters retrieves all clusters from the DB
+// GetClusters retrieves all clusters from the DB.
 func GetClusters() ([]ClusterRecord, error) {
-	rows, err := DB.Query("SELECT id, name, encrypted_kubeconfig, created_at FROM clusters")
+	rows, err := DB.Query("SELECT id, name, server_url, encrypted_token, encrypted_ca_cert, created_at FROM clusters")
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +64,7 @@ func GetClusters() ([]ClusterRecord, error) {
 	var clusters []ClusterRecord
 	for rows.Next() {
 		var c ClusterRecord
-		if err := rows.Scan(&c.ID, &c.Name, &c.EncryptedKubeconfig, &c.CreatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.ServerURL, &c.EncryptedToken, &c.EncryptedCACert, &c.CreatedAt); err != nil {
 			return nil, err
 		}
 		clusters = append(clusters, c)
@@ -69,9 +72,12 @@ func GetClusters() ([]ClusterRecord, error) {
 	return clusters, nil
 }
 
-// AddCluster securely inserts a new cluster into the DB
-func AddCluster(name, encryptedKubeconfig string) (int, error) {
-	res, err := DB.Exec("INSERT INTO clusters (name, encrypted_kubeconfig) VALUES (?, ?)", name, encryptedKubeconfig)
+// AddCluster stores a new cluster's encrypted credentials.
+func AddCluster(name, serverURL, encryptedToken, encryptedCACert string) (int, error) {
+	res, err := DB.Exec(
+		"INSERT INTO clusters (name, server_url, encrypted_token, encrypted_ca_cert) VALUES (?, ?, ?, ?)",
+		name, serverURL, encryptedToken, encryptedCACert,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -79,20 +85,22 @@ func AddCluster(name, encryptedKubeconfig string) (int, error) {
 	return int(id), err
 }
 
-// DeleteCluster removes a cluster by ID
+// DeleteCluster removes a cluster by ID.
 func DeleteCluster(id int) error {
 	_, err := DB.Exec("DELETE FROM clusters WHERE id = ?", id)
 	return err
 }
 
-// GetClusterByName fetches a specific cluster
+// GetClusterByName fetches a specific cluster by name.
 func GetClusterByName(name string) (*ClusterRecord, error) {
 	var c ClusterRecord
-	err := DB.QueryRow("SELECT id, name, encrypted_kubeconfig, created_at FROM clusters WHERE name = ?", name).
-		Scan(&c.ID, &c.Name, &c.EncryptedKubeconfig, &c.CreatedAt)
+	err := DB.QueryRow(
+		"SELECT id, name, server_url, encrypted_token, encrypted_ca_cert, created_at FROM clusters WHERE name = ?",
+		name,
+	).Scan(&c.ID, &c.Name, &c.ServerURL, &c.EncryptedToken, &c.EncryptedCACert, &c.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // not found
+			return nil, nil
 		}
 		return nil, err
 	}

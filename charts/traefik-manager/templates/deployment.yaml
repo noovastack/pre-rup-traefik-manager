@@ -1,3 +1,21 @@
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "traefik-manager.fullname" . }}-data
+  labels:
+    {{- include "traefik-manager.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
+  {{- end }}
+---
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,16 +45,41 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          env:
+            - name: TM_DB_PATH
+              value: "/data/traefik-manager.db"
+            {{- if .Values.encryptionKeySecret.name }}
+            - name: TM_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.encryptionKeySecret.name }}
+                  key: {{ .Values.encryptionKeySecret.key }}
+            {{- end }}
           livenessProbe:
             httpGet:
-              path: /api/v1/namespaces/default/services
+              path: /healthz
               port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /api/v1/namespaces/default/services
+              path: /healthz
               port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /data
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "traefik-manager.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

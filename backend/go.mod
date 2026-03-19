@@ -1,4 +1,4 @@
-module github.com/chousour/traefik-manager
+module github.com/noovastack/traefik-manager
 
 go 1.25.0
 

@@ -40,7 +40,25 @@ func NewClient(explicitKubeconfig string) (*Client, error) {
 			return nil, fmt.Errorf("failed to build kubeconfig: %w", err)
 		}
 	}
+	return newClientFromConfig(config)
+}
 
+// NewClientFromToken builds a client directly from a bearer token and API server URL.
+// caCert is the PEM-encoded CA certificate; pass an empty string to skip TLS verification.
+func NewClientFromToken(serverURL, token, caCert string) (*Client, error) {
+	config := &rest.Config{
+		Host:        serverURL,
+		BearerToken: token,
+	}
+	if caCert != "" {
+		config.TLSClientConfig = rest.TLSClientConfig{CAData: []byte(caCert)}
+	} else {
+		config.TLSClientConfig = rest.TLSClientConfig{Insecure: true}
+	}
+	return newClientFromConfig(config)
+}
+
+func newClientFromConfig(config *rest.Config) (*Client, error) {
 	k8sClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create k8s client: %w", err)

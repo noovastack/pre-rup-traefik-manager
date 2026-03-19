@@ -16,7 +16,7 @@ type Manager interface {
 	GetK8s(r *http.Request) kubernetes.Interface
 
 	// AddCluster adds a new remote Kubernetes cluster to the active connection pool.
-	AddCluster(id int, name, kubeconfig string) error
+	AddCluster(id int, name, serverURL, token, caCert string) error
 
 	// RemoveCluster deletes a remote cluster from the active connection pool.
 	RemoveCluster(id int)

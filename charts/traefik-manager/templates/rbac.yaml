@@ -15,12 +15,21 @@ kind: ClusterRole
 metadata:
   name: {{ include "traefik-manager.fullname" . }}
 rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "services", "nodes", "pods"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["traefik.containo.us", "traefik.io"]
     resources:
       - ingressroutes
+      - ingressroutetcps
+      - ingressrouteudps
       - middlewares
+      - middlewaretcps
       - tlsoptions
       - tlsstores
+      - traefikservices
+      - serverstransports
+      - serverstransporttcps
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["gateway.networking.k8s.io"]
     resources:
@@ -28,11 +37,6 @@ rules:
       - gateways
       - httproutes
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  - apiGroups: [""]
-    resources:
-      - services
-      - namespaces
-    verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

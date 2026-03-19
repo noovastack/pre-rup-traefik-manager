@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
-	"github.com/chousour/traefik-manager/internal/provider"
+	"github.com/noovastack/traefik-manager/internal/provider"
 )
 
 // NewRouter builds and returns the application's chi router.
@@ -18,11 +18,18 @@ func NewRouter(manager provider.Manager) http.Handler {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	// AllowedOrigins is intentionally open — Traefik Manager is a self-hosted
+	// internal tool. Restrict this if you expose the API to untrusted networks.
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Content-Type", "X-Cluster-Context"},
 	}))
+
+	// Process-level liveness probe — no cluster required
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	r.Route("/api/v1", func(r chi.Router) {
 		// Public routes

@@ -7,12 +7,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/chousour/traefik-manager/internal/db"
-	"github.com/chousour/traefik-manager/internal/crypto"
+	"github.com/noovastack/traefik-manager/internal/crypto"
+	"github.com/noovastack/traefik-manager/internal/db"
 )
 
 type ClusterManager interface {
-	AddCluster(id int, name, kubeconfig string) error
+	AddCluster(id int, name, serverURL, token, caCert string) error
 	RemoveCluster(id int)
 }
 
@@ -35,6 +35,7 @@ func (h *ClusterHandler) Routes() chi.Router {
 type ClusterResponse struct {
 	ID        int    `json:"id"`
 	Name      string `json:"name"`
+	ServerURL string `json:"serverUrl"`
 	CreatedAt string `json:"createdAt"`
 }
 
@@ -50,6 +51,7 @@ func (h *ClusterHandler) List(w http.ResponseWriter, r *http.Request) {
 		res[i] = ClusterResponse{
 			ID:        c.ID,
 			Name:      c.Name,
+			ServerURL: c.ServerURL,
 			CreatedAt: c.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 	}
@@ -57,8 +59,10 @@ func (h *ClusterHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateClusterRequest struct {
-	Name       string `json:"name"`
-	Kubeconfig string `json:"kubeconfig"`
+	Name      string `json:"name"`
+	ServerURL string `json:"serverUrl"`
+	Token     string `json:"token"`
+	CACert    string `json:"caCert"`
 }
 
 func (h *ClusterHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -68,35 +72,43 @@ func (h *ClusterHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" || req.Kubeconfig == "" {
-		respondError(w, http.StatusBadRequest, "VALIDATION_FAILED", "name and kubeconfig are required")
+	if req.Name == "" || req.ServerURL == "" || req.Token == "" {
+		respondError(w, http.StatusBadRequest, "VALIDATION_FAILED", "name, serverUrl, and token are required")
 		return
 	}
 
-	// Encrypt the Kubeconfig before saving
-	encrypted, err := crypto.Encrypt(req.Kubeconfig)
+	encToken, err := crypto.Encrypt(req.Token)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "CRYPTO_ERROR", "failed to encrypt credentials: "+err.Error())
+		respondError(w, http.StatusInternalServerError, "CRYPTO_ERROR", "failed to encrypt token: "+err.Error())
 		return
 	}
 
-	id, err := db.AddCluster(req.Name, encrypted)
+	encCA := ""
+	if req.CACert != "" {
+		encCA, err = crypto.Encrypt(req.CACert)
+		if err != nil {
+			respondError(w, http.StatusInternalServerError, "CRYPTO_ERROR", "failed to encrypt CA cert: "+err.Error())
+			return
+		}
+	}
+
+	id, err := db.AddCluster(req.Name, req.ServerURL, encToken, encCA)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "DB_ERROR", "failed to save cluster to db: "+err.Error())
+		respondError(w, http.StatusInternalServerError, "DB_ERROR", "failed to save cluster: "+err.Error())
 		return
 	}
 
-	// Update the in-memory pool
-	if err := h.manager.AddCluster(id, req.Name, req.Kubeconfig); err != nil {
-		// Rollback DB insertion if we can't authenticate to it
+	// Test connectivity before confirming success
+	if err := h.manager.AddCluster(id, req.Name, req.ServerURL, req.Token, req.CACert); err != nil {
 		db.DeleteCluster(id)
 		respondError(w, http.StatusBadRequest, "K8S_AUTH_FAILED", "failed to authenticate cluster: "+err.Error())
 		return
 	}
 
 	respondJSON(w, http.StatusCreated, map[string]interface{}{
-		"id":   id,
-		"name": req.Name,
+		"id":        id,
+		"name":      req.Name,
+		"serverUrl": req.ServerURL,
 	})
 }
 

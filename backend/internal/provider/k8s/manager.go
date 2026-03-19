@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/chousour/traefik-manager/internal/provider"
+	"github.com/noovastack/traefik-manager/internal/provider"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -31,9 +31,9 @@ func NewManager(localClient *Client) *ManagerImpl {
 	return m
 }
 
-// AddCluster parses a raw kubeconfig and adds its connection pool to memory.
-func (m *ManagerImpl) AddCluster(id int, name, kubeconfig string) error {
-	client, err := NewClient(kubeconfig)
+// AddCluster builds a client from a bearer token and registers it in the pool.
+func (m *ManagerImpl) AddCluster(id int, name, serverURL, token, caCert string) error {
+	client, err := NewClientFromToken(serverURL, token, caCert)
 	if err != nil {
 		return err
 	}

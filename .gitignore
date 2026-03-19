@@ -1,0 +1,25 @@
+# Build artifacts
+frontend/node_modules/
+frontend/dist/
+backend/tmp/
+backend/server
+
+# Secrets and credentials
+*.kubeconfig
+*kubeconfig*
+*.key
+*.pem
+*.crt
+*.cert
+.env
+.env.*
+*.secret
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db

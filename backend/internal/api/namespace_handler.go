@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/chousour/traefik-manager/internal/provider"
+	"github.com/noovastack/traefik-manager/internal/provider"
 )
 
 type NamespaceHandler struct {

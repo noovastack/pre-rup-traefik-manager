@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/chousour/traefik-manager/internal/provider"
+	"github.com/noovastack/traefik-manager/internal/provider"
 	"github.com/go-chi/chi/v5"
 	traefikalphav1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 )

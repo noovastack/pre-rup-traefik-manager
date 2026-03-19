@@ -1,7 +1,13 @@
 {
-  "name": "frontend",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@noovastack/traefik-manager-ui",
+  "version": "0.1.0",
+  "description": "Web UI for Traefik Manager — a Kubernetes-native GUI for managing Traefik proxy configurations",
+  "license": "MIT",
+  "author": "Noova Stack Technology",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noovastack/traefik-manager"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite --host",
