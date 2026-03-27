@@ -18,6 +18,6 @@ type Manager interface {
 	// AddCluster adds a new remote Kubernetes cluster to the active connection pool.
 	AddCluster(id int, name, serverURL, token, caCert string) error
 
-	// RemoveCluster deletes a remote cluster from the active connection pool.
-	RemoveCluster(id int)
+	// RemoveClusterByName deletes a remote cluster from the active connection pool by name.
+	RemoveClusterByName(name string)
 }

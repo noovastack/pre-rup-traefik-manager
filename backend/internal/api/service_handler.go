@@ -32,7 +32,7 @@ func (h *ServiceHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	svcs, err := h.manager.Get(r).GetServices(r.Context(), namespace)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *ServiceHandler) ListEndpoints(w http.ResponseWriter, r *http.Request) {
 
 	eps, err := h.manager.Get(r).GetEndpoints(r.Context(), namespace, service)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 

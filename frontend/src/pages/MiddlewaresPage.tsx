@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { k8sApi, capabilitiesApi } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2, ShieldAlert, Key, Zap, Scissors, Edit2 } from 'lucide-react';
@@ -23,6 +24,7 @@ export function MiddlewaresPage({ namespace }: { namespace: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['middlewares', namespace] });
     },
+    onError: (err: Error) => toast.error(`Failed to delete: ${err.message}`),
   });
 
   const { data: caps } = useQuery({

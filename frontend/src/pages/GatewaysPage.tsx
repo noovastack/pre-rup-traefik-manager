@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { k8sApi, capabilitiesApi } from '@/api';
 import yaml from 'js-yaml';
 import { Globe, Server, Plus, Trash2, Edit, Code } from 'lucide-react';
@@ -26,6 +27,7 @@ export default function GatewaysPage({ namespace }: { namespace: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gateways', namespace] });
     },
+    onError: (err: Error) => toast.error(`Failed to delete: ${err.message}`),
   });
 
   const { data: caps } = useQuery({

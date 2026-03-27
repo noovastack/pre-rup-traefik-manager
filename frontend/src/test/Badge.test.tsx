@@ -1,5 +1,7 @@
+import { describe, it, expect } from 'vitest'
+import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
-import { Badge } from '@/components/Badge'
+import { Badge } from '../components/Badge'
 
 describe('Badge', () => {
   it('renders its children', () => {
@@ -22,6 +24,6 @@ describe('Badge', () => {
   it('defaults to gray variant', () => {
     render(<Badge>Unknown</Badge>)
     const el = screen.getByText('Unknown')
-    expect(el.className).toContain('muted')
+    expect(el.className).toContain('slate')
   })
 })

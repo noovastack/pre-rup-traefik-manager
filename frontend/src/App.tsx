@@ -4,7 +4,7 @@ import { k8sApi } from '@/api';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { ThemeProvider, useTheme } from '@/components/ThemeProvider';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { IngressRoutesPage } from '@/pages/IngressRoutesPage';
@@ -22,10 +22,15 @@ import ObservabilityPage from '@/pages/ObservabilityPage';
 import { PluginsPage } from '@/pages/PluginsPage';
 import { TopologyPage } from '@/pages/TopologyPage';
 import AboutPage from '@/pages/AboutPage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { UserManagementPage } from '@/pages/UserManagementPage';
+import { FirstLoginSetupPage } from '@/pages/FirstLoginSetupPage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toaster } from 'sonner';
+import { AuthProvider, useAuth } from '@/AuthContext';
+import { LoginPage } from '@/pages/LoginPage';
 
-export type Page = 'dashboard' | 'topology' | 'ingressroutes' | 'ingressroutetcps' | 'ingressrouteudps' | 'traefikservices' | 'serverstransports' | 'middlewares' | 'middlewaretcps' | 'tlsoptions' | 'gatewayclasses' | 'gateways' | 'httproutes' | 'observability' | 'plugins' | 'about';
+export type Page = 'dashboard' | 'topology' | 'ingressroutes' | 'ingressroutetcps' | 'ingressrouteudps' | 'traefikservices' | 'serverstransports' | 'middlewares' | 'middlewaretcps' | 'tlsoptions' | 'gatewayclasses' | 'gateways' | 'httproutes' | 'observability' | 'plugins' | 'about' | 'profile' | 'users';
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -46,7 +51,7 @@ function ThemeToggle() {
 function AppContent() {
   const [page, setPage] = useState<Page>(() => {
     const saved = localStorage.getItem('tm_page') as Page | null;
-    const valid: Page[] = ['dashboard','topology','ingressroutes','ingressroutetcps','ingressrouteudps','traefikservices','serverstransports','middlewares','middlewaretcps','tlsoptions','gatewayclasses','gateways','httproutes','observability','plugins','about'];
+    const valid: Page[] = ['dashboard','topology','ingressroutes','ingressroutetcps','ingressrouteudps','traefikservices','serverstransports','middlewares','middlewaretcps','tlsoptions','gatewayclasses','gateways','httproutes','observability','plugins','about','profile','users'];
     return (saved && valid.includes(saved)) ? saved : 'dashboard';
   });
   const [activeNamespace, setActiveNamespace] = useState<string>(() => {
@@ -103,6 +108,8 @@ function AppContent() {
                 {page === 'observability' && `Observability (${activeNamespace})`}
                 {page === 'plugins' && `Plugins (${activeNamespace})`}
                 {page === 'about' && 'About'}
+                {page === 'profile' && 'My Profile'}
+                {page === 'users' && 'User Management'}
               </h1>
               <ThemeToggle />
             </div>
@@ -126,6 +133,8 @@ function AppContent() {
               {page === 'observability' && <ObservabilityPage namespace={activeNamespace} />}
               {page === 'plugins' && <PluginsPage namespace={activeNamespace} />}
               {page === 'about' && <AboutPage />}
+              {page === 'profile' && <ProfilePage />}
+              {page === 'users' && <UserManagementPage />}
             </div>
           </div>
         </main>
@@ -138,15 +147,29 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
+function AuthGate() {
+  const { token, user, userLoading } = useAuth();
+  if (!token) return <LoginPage />;
+  if (userLoading) return (
+    <div className="flex h-screen items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+  if (user?.mustChangeCredentials) return <FirstLoginSetupPage />;
+  return <AppContent />;
+}
+
 export default function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="ui-theme">
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary>
-          <AppContent />
-        </ErrorBoundary>
-        <Toaster richColors position="bottom-right" />
-      </QueryClientProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <ErrorBoundary>
+            <AuthGate />
+          </ErrorBoundary>
+          <Toaster richColors position="bottom-right" />
+        </QueryClientProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

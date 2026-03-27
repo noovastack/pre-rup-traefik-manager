@@ -32,12 +32,11 @@ func (h *ObservabilityHandler) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	data, err := h.manager.Get(r).GetTelemetryConfig(ctx, namespace, name)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	respondJSON(w, http.StatusOK, data)
 }
 
 func (h *ObservabilityHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -46,17 +45,16 @@ func (h *ObservabilityHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	var data map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "INVALID_JSON", err.Error())
 		return
 	}
 
 	ctx := r.Context()
 	err := h.manager.Get(r).UpdateTelemetryConfig(ctx, namespace, name, data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	respondJSON(w, http.StatusOK, data)
 }

@@ -33,7 +33,7 @@ func (h *MiddlewareHandler) List(w http.ResponseWriter, r *http.Request) {
 	namespace := chi.URLParam(r, "namespace")
 	middlewares, err := h.manager.Get(r).GetMiddlewares(namespace)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, middlewares)
@@ -49,7 +49,7 @@ func (h *MiddlewareHandler) Get(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "Middleware not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, mw)
@@ -68,7 +68,7 @@ func (h *MiddlewareHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	created, err := h.manager.Get(r).CreateMiddleware(namespace, &mw)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusCreated, created)
@@ -97,7 +97,7 @@ func (h *MiddlewareHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := h.manager.Get(r).UpdateMiddleware(namespace, mw.Name, &mw)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 
@@ -114,7 +114,7 @@ func (h *MiddlewareHandler) Delete(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "Middleware not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	

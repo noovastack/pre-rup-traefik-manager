@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -13,7 +15,7 @@ import (
 
 type ClusterManager interface {
 	AddCluster(id int, name, serverURL, token, caCert string) error
-	RemoveCluster(id int)
+	RemoveClusterByName(name string)
 }
 
 type ClusterHandler struct {
@@ -42,7 +44,7 @@ type ClusterResponse struct {
 func (h *ClusterHandler) List(w http.ResponseWriter, r *http.Request) {
 	clusters, err := db.GetClusters()
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "DB_ERROR", err.Error())
+		internalError(w, err, "DB_ERROR")
 		return
 	}
 
@@ -77,9 +79,14 @@ func (h *ClusterHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if u, err := url.ParseRequestURI(req.ServerURL); err != nil || (u.Scheme != "https" && u.Scheme != "http") {
+		respondError(w, http.StatusBadRequest, "VALIDATION_FAILED", "serverUrl must be a valid http or https URL")
+		return
+	}
+
 	encToken, err := crypto.Encrypt(req.Token)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "CRYPTO_ERROR", "failed to encrypt token: "+err.Error())
+		internalError(w, err, "CRYPTO_ERROR")
 		return
 	}
 
@@ -87,21 +94,22 @@ func (h *ClusterHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if req.CACert != "" {
 		encCA, err = crypto.Encrypt(req.CACert)
 		if err != nil {
-			respondError(w, http.StatusInternalServerError, "CRYPTO_ERROR", "failed to encrypt CA cert: "+err.Error())
+			internalError(w, err, "CRYPTO_ERROR")
 			return
 		}
 	}
 
 	id, err := db.AddCluster(req.Name, req.ServerURL, encToken, encCA)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "DB_ERROR", "failed to save cluster: "+err.Error())
+		internalError(w, err, "DB_ERROR")
 		return
 	}
 
 	// Test connectivity before confirming success
 	if err := h.manager.AddCluster(id, req.Name, req.ServerURL, req.Token, req.CACert); err != nil {
 		db.DeleteCluster(id)
-		respondError(w, http.StatusBadRequest, "K8S_AUTH_FAILED", "failed to authenticate cluster: "+err.Error())
+		log.Printf("[ERR] cluster %q connect failed: %v", req.Name, err)
+		respondError(w, http.StatusBadRequest, "K8S_AUTH_FAILED", "failed to connect to cluster; check the server URL and token")
 		return
 	}
 
@@ -120,11 +128,21 @@ func (h *ClusterHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.DeleteCluster(id); err != nil {
-		respondError(w, http.StatusInternalServerError, "DB_ERROR", err.Error())
+	cluster, err := db.GetClusterByID(id)
+	if err != nil {
+		internalError(w, err, "DB_ERROR")
+		return
+	}
+	if cluster == nil {
+		respondError(w, http.StatusNotFound, "NOT_FOUND", "cluster not found")
 		return
 	}
 
-	h.manager.RemoveCluster(id)
+	if err := db.DeleteCluster(id); err != nil {
+		internalError(w, err, "DB_ERROR")
+		return
+	}
+
+	h.manager.RemoveClusterByName(cluster.Name)
 	w.WriteHeader(http.StatusNoContent)
 }

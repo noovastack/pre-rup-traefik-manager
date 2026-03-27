@@ -33,7 +33,7 @@ func (h *HTTPRouteHandler) List(w http.ResponseWriter, r *http.Request) {
 	namespace := chi.URLParam(r, "namespace")
 	routes, err := h.manager.Get(r).GetHTTPRoutes(namespace)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, routes)
@@ -49,7 +49,7 @@ func (h *HTTPRouteHandler) Get(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "HTTPRoute not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, hr)
@@ -67,7 +67,7 @@ func (h *HTTPRouteHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	created, err := h.manager.Get(r).CreateHTTPRoute(namespace, &hr)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusCreated, created)
@@ -95,7 +95,7 @@ func (h *HTTPRouteHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := h.manager.Get(r).UpdateHTTPRoute(namespace, hr.Name, &hr)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 
@@ -112,7 +112,7 @@ func (h *HTTPRouteHandler) Delete(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "HTTPRoute not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 

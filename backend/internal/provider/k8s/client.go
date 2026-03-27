@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 
 	traefikalphav1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	traefikclient "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/generated/clientset/versioned"
@@ -25,20 +23,12 @@ type Client struct {
 	Gateway gatewayclient.Interface
 }
 
-func NewClient(explicitKubeconfig string) (*Client, error) {
+// NewClientInCluster builds a client from the pod's mounted ServiceAccount token.
+// Returns (nil, nil) when not running inside a Kubernetes pod.
+func NewClientInCluster() (*Client, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		kubeconfig := explicitKubeconfig
-		if kubeconfig == "" {
-			kubeconfig = os.Getenv("KUBECONFIG")
-		}
-		if kubeconfig == "" {
-			kubeconfig = os.ExpandEnv("$HOME/.kube/config")
-		}
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build kubeconfig: %w", err)
-		}
+		return nil, nil // not in a pod — not an error
 	}
 	return newClientFromConfig(config)
 }

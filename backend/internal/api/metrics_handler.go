@@ -1,10 +1,9 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,7 +50,7 @@ func (h *MetricsHandler) GetMetrics(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil || len(pods.Items) == 0 {
 		// If we still can't find a Traefik pod, gracefully return 0 metrics
-		json.NewEncoder(w).Encode(TraefikMetrics{HTTPCodes: make(map[string]int)})
+		respondJSON(w, http.StatusOK, TraefikMetrics{HTTPCodes: make(map[string]int)})
 		return
 	}
 
@@ -72,12 +71,12 @@ func (h *MetricsHandler) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If we can't fetch metrics (e.g. metrics disabled)
 		// we return a graceful empty set instead of a hard error, so the UI doesn't crash.
-		json.NewEncoder(w).Encode(TraefikMetrics{HTTPCodes: make(map[string]int)})
+		respondJSON(w, http.StatusOK, TraefikMetrics{HTTPCodes: make(map[string]int)})
 		return
 	}
 
 	metrics := h.parsePrometheusMetrics(string(rawMetrics))
-	json.NewEncoder(w).Encode(metrics)
+	respondJSON(w, http.StatusOK, metrics)
 }
 
 func (h *MetricsHandler) parsePrometheusMetrics(rawData string) TraefikMetrics {

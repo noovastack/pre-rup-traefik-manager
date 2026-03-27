@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Shield } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { authApi } from '../api';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ export function LoginPage() {
 
     try {
       const res = await authApi.login(username, password);
-      login(res.token);
+      await login(res.token);
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
@@ -33,11 +32,11 @@ export function LoginPage() {
     <div className="min-h-screen bg-[#121212] font-sans flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="flex justify-center text-primary">
-          <Shield size={56} strokeWidth={1.5} />
+        <div className="flex justify-center">
+          <img src="/traefik-manager.jpeg" alt="Traefik Manager" className="h-20 w-20 rounded-2xl object-cover shadow-xl" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-foreground">
-          Traefik Manager
+          Pre Rup Traefik Manager
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           Enter your credentials to access the control plane

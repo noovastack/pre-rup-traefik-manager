@@ -61,6 +61,53 @@ export const authApi = {
     }),
 };
 
+// ── Profile ─────────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  id: number;
+  username: string;
+  displayName: string;
+  email: string;
+  role: 'admin' | 'viewer';
+  mustChangeCredentials: boolean;
+  createdAt: string;
+}
+
+export const profileApi = {
+  get: () => request<UserProfile>('/profile'),
+  update: (data: { displayName: string; email: string }) =>
+    request<UserProfile>('/profile', { method: 'PUT', body: JSON.stringify(data) }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<void>('/profile/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+  setup: (username: string, newPassword: string) =>
+    request<UserProfile>('/profile/setup', {
+      method: 'PUT',
+      body: JSON.stringify({ username, newPassword }),
+    }),
+};
+
+// ── Users (admin) ────────────────────────────────────────────────────────────
+
+export interface CreateUserRequest {
+  username: string;
+  password: string;
+  displayName: string;
+  email: string;
+  role: 'admin' | 'viewer';
+}
+
+export const usersApi = {
+  list: () => request<UserProfile[]>('/users'),
+  create: (data: CreateUserRequest) =>
+    request<UserProfile>('/users', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: number) => request<void>(`/users/${id}`, { method: 'DELETE' }),
+  updateRole: (id: number, role: 'admin' | 'viewer') =>
+    request<void>(`/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+};
+
 // ── Clusters ───────────────────────────────────────────────────────────────
 
 export interface ClusterHealth {

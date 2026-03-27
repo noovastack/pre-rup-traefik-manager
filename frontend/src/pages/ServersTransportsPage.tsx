@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { k8sApi, capabilitiesApi } from '@/api';
 import yaml from 'js-yaml';
 import { Trash2, Edit, Network, Code } from 'lucide-react';
@@ -35,6 +36,7 @@ export function ServersTransportsPage({ namespace }: { namespace: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serverstransports', namespace] });
     },
+    onError: (err: Error) => toast.error(`Failed to delete: ${err.message}`),
   });
 
   const { data: caps } = useQuery({

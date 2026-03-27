@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Route, ShieldAlert, LogOut, ChevronDown, LockKeyhole, Server, Network, Globe, Activity, Blocks, Map, Info } from 'lucide-react';
+import { LayoutDashboard, Route, ShieldAlert, LogOut, ChevronDown, LockKeyhole, Server, Network, Globe, Activity, Blocks, Map, Info, User, Users } from 'lucide-react';
 import type { Page } from '@/App';
 import { useAuth } from '@/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -100,7 +100,7 @@ export function AppSidebar({
   activeNamespace: string;
   onNamespaceChange: (ns: string) => void;
 }) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
@@ -108,12 +108,12 @@ export function AppSidebar({
       <SidebarHeader className="border-b border-sidebar-border p-0">
         <div className="px-5 pt-5 pb-4">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 font-bold text-white text-sm shadow-lg shadow-blue-500/25">
-              T
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
+              <img src="/traefik-manager.jpeg" alt="Traefik Manager" className="h-9 w-9 rounded-xl object-cover shadow-lg" />
               <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-sidebar pulse-dot" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground tracking-wide leading-tight">Traefik Manager</span>
+              <span className="text-sm font-semibold text-sidebar-foreground tracking-wide leading-tight whitespace-nowrap">Pre Rup Traefik Manager</span>
               <span className="text-[10px] text-muted-foreground font-medium">Kubernetes Dashboard</span>
             </div>
           </div>
@@ -199,7 +199,53 @@ export function AppSidebar({
 
       {/* ── Footer ─────────────────────────────────────────────────── */}
       <SidebarFooter className="border-t border-sidebar-border p-3">
+        {/* User identity strip */}
+        {user && (
+          <button
+            onClick={() => onNavigate('profile')}
+            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-sidebar-accent transition-colors mb-1 text-left"
+          >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-[11px] font-bold uppercase">
+              {(user.displayName || user.username).charAt(0)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-semibold text-sidebar-foreground truncate">
+                {user.displayName || user.username}
+              </p>
+              <p className="text-[10px] text-muted-foreground">{user.role}</p>
+            </div>
+          </button>
+        )}
+
         <SidebarMenu>
+          {user?.role === 'admin' && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={activePage === 'users'}
+                onClick={() => onNavigate('users')}
+                className={`rounded-lg transition-colors duration-150 h-9 border-l-2 border-l-transparent hover:bg-sidebar-accent hover:border-l-sidebar-border ${activePage === 'users' ? 'border-l-sidebar-border bg-sidebar-accent text-sidebar-foreground' : 'text-muted-foreground'}`}
+                tooltip="User Management"
+              >
+                <div className={`flex h-6 w-6 items-center justify-center rounded-md ${activePage === 'users' ? 'bg-sidebar-primary/10' : 'bg-sidebar-accent'} transition-colors`}>
+                  <Users className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-[13px] font-medium">User Management</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={activePage === 'profile'}
+              onClick={() => onNavigate('profile')}
+              className={`rounded-lg transition-colors duration-150 h-9 border-l-2 border-l-transparent hover:bg-sidebar-accent hover:border-l-sidebar-border ${activePage === 'profile' ? 'border-l-sidebar-border bg-sidebar-accent text-sidebar-foreground' : 'text-muted-foreground'}`}
+              tooltip="My Profile"
+            >
+              <div className={`flex h-6 w-6 items-center justify-center rounded-md ${activePage === 'profile' ? 'bg-sidebar-primary/10' : 'bg-sidebar-accent'} transition-colors`}>
+                <User className="h-3.5 w-3.5" />
+              </div>
+              <span className="text-[13px] font-medium">My Profile</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={activePage === 'about'}

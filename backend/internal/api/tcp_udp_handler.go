@@ -38,109 +38,115 @@ func (h *TCPUDPHandler) RoutesUDP() chi.Router {
 // ── IngressRouteTCP ─────────────────────────────────────────────────────────
 
 func (h *TCPUDPHandler) ListTCP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-routes, err := h.manager.Get(r).GetIngressRoutesTCP(namespace)
-if err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-json.NewEncoder(w).Encode(routes)
+	namespace := chi.URLParam(r, "namespace")
+	routes, err := h.manager.Get(r).GetIngressRoutesTCP(namespace)
+	if err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(routes) //nolint:errcheck
 }
 
 func (h *TCPUDPHandler) CreateTCP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-var crd traefikalphav1.IngressRouteTCP
-if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
-http.Error(w, err.Error(), http.StatusBadRequest)
-return
-}
+	namespace := chi.URLParam(r, "namespace")
+	var crd traefikalphav1.IngressRouteTCP
+	if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
+		respondError(w, http.StatusBadRequest, "INVALID_JSON", err.Error())
+		return
+	}
 
-created, err := h.manager.Get(r).CreateIngressRouteTCP(namespace, &crd)
-if err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-json.NewEncoder(w).Encode(created)
+	created, err := h.manager.Get(r).CreateIngressRouteTCP(namespace, &crd)
+	if err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(created) //nolint:errcheck
 }
 
 func (h *TCPUDPHandler) UpdateTCP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-name := chi.URLParam(r, "name")
-var crd traefikalphav1.IngressRouteTCP
-if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
-http.Error(w, err.Error(), http.StatusBadRequest)
-return
-}
+	namespace := chi.URLParam(r, "namespace")
+	name := chi.URLParam(r, "name")
+	var crd traefikalphav1.IngressRouteTCP
+	if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
+		respondError(w, http.StatusBadRequest, "INVALID_JSON", err.Error())
+		return
+	}
 
-updated, err := h.manager.Get(r).UpdateIngressRouteTCP(namespace, name, &crd)
-if err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-json.NewEncoder(w).Encode(updated)
+	updated, err := h.manager.Get(r).UpdateIngressRouteTCP(namespace, name, &crd)
+	if err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updated) //nolint:errcheck
 }
 
 func (h *TCPUDPHandler) DeleteTCP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-name := chi.URLParam(r, "name")
-if err := h.manager.Get(r).DeleteIngressRouteTCP(namespace, name); err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-w.WriteHeader(http.StatusNoContent)
+	namespace := chi.URLParam(r, "namespace")
+	name := chi.URLParam(r, "name")
+	if err := h.manager.Get(r).DeleteIngressRouteTCP(namespace, name); err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // ── IngressRouteUDP ─────────────────────────────────────────────────────────
 
 func (h *TCPUDPHandler) ListUDP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-routes, err := h.manager.Get(r).GetIngressRoutesUDP(namespace)
-if err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-json.NewEncoder(w).Encode(routes)
+	namespace := chi.URLParam(r, "namespace")
+	routes, err := h.manager.Get(r).GetIngressRoutesUDP(namespace)
+	if err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(routes) //nolint:errcheck
 }
 
 func (h *TCPUDPHandler) CreateUDP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-var crd traefikalphav1.IngressRouteUDP
-if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
-http.Error(w, err.Error(), http.StatusBadRequest)
-return
-}
+	namespace := chi.URLParam(r, "namespace")
+	var crd traefikalphav1.IngressRouteUDP
+	if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
+		respondError(w, http.StatusBadRequest, "INVALID_JSON", err.Error())
+		return
+	}
 
-created, err := h.manager.Get(r).CreateIngressRouteUDP(namespace, &crd)
-if err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-json.NewEncoder(w).Encode(created)
+	created, err := h.manager.Get(r).CreateIngressRouteUDP(namespace, &crd)
+	if err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(created) //nolint:errcheck
 }
 
 func (h *TCPUDPHandler) UpdateUDP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-name := chi.URLParam(r, "name")
-var crd traefikalphav1.IngressRouteUDP
-if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
-http.Error(w, err.Error(), http.StatusBadRequest)
-return
-}
+	namespace := chi.URLParam(r, "namespace")
+	name := chi.URLParam(r, "name")
+	var crd traefikalphav1.IngressRouteUDP
+	if err := json.NewDecoder(r.Body).Decode(&crd); err != nil {
+		respondError(w, http.StatusBadRequest, "INVALID_JSON", err.Error())
+		return
+	}
 
-updated, err := h.manager.Get(r).UpdateIngressRouteUDP(namespace, name, &crd)
-if err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-json.NewEncoder(w).Encode(updated)
+	updated, err := h.manager.Get(r).UpdateIngressRouteUDP(namespace, name, &crd)
+	if err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updated) //nolint:errcheck
 }
 
 func (h *TCPUDPHandler) DeleteUDP(w http.ResponseWriter, r *http.Request) {
-namespace := chi.URLParam(r, "namespace")
-name := chi.URLParam(r, "name")
-if err := h.manager.Get(r).DeleteIngressRouteUDP(namespace, name); err != nil {
-http.Error(w, err.Error(), http.StatusInternalServerError)
-return
-}
-w.WriteHeader(http.StatusNoContent)
+	namespace := chi.URLParam(r, "namespace")
+	name := chi.URLParam(r, "name")
+	if err := h.manager.Get(r).DeleteIngressRouteUDP(namespace, name); err != nil {
+		internalError(w, err, "K8S_ERROR")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --color-primary-600: #0891b2; /* cyan-600 */
-    --color-primary-500: #06b6d4; /* cyan-500 */
-    --color-primary-400: #22d3ee; /* cyan-400 */
-    --color-primary-300: #67e8f9; /* cyan-300 */
-    --color-primary-200: #a5f3fc; /* cyan-200 */
-    --color-primary-100: #cffafe; /* cyan-100 */
+    --color-primary-600: #009CB7; /* brand cyan-600 */
+    --color-primary-500: #00BEE0; /* brand cyan-500 (#00C0E0) */
+    --color-primary-400: #1EDDFF; /* brand cyan-400 */
+    --color-primary-300: #56E5FE; /* brand cyan-300 */
+    --color-primary-200: #8EEEFF; /* brand cyan-200 */
+    --color-primary-100: #C6F6FF; /* brand cyan-100 */
     --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   }
@@ -27,15 +27,15 @@ body {
 
 @layer base {
   :root {
-    /* NoovaStack Blue Light Mode */
+    /* Brand Light Mode */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 189 100% 44%;
+    --primary-foreground: 222 47% 11%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
@@ -46,7 +46,7 @@ body {
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 189 100% 44%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -55,12 +55,12 @@ body {
     --radius: 0.5rem;
     --sidebar-background: 220 20% 97%;
     --sidebar-foreground: 222.2 47% 20%;
-    --sidebar-primary: 221.2 83.2% 53.3%;
-    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-primary: 189 100% 44%;
+    --sidebar-primary-foreground: 222 47% 11%;
     --sidebar-accent: 214.3 31.8% 91.4%;
     --sidebar-accent-foreground: 222.2 47.4% 11.2%;
     --sidebar-border: 214.3 31.8% 88%;
-    --sidebar-ring: 221.2 83.2% 53.3%;
+    --sidebar-ring: 189 100% 44%;
   }
   .dark {
     /* MD2 Standard Background -> Slate 950 */
@@ -73,8 +73,8 @@ body {
     --popover: 222 47% 15%;
     --popover-foreground: 210 40% 98%;
     
-    /* Primary (Cyan 500 equivalent) */
-    --primary: 189 94% 43%; 
+    /* Primary (brand cyan #00C0E0) */
+    --primary: 189 100% 44%;
     --primary-foreground: 222 47% 11%;
     
     /* MD2 Secondary Elements -> Slate 800 */
@@ -92,7 +92,7 @@ body {
     /* Subtle Borders (Slate 800 / White 10%) */
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 189 94% 43%; /* Cyan ring */
+    --ring: 189 100% 44%; /* brand cyan ring */
 
     /* Charts */
     --chart-1: 220 70% 50%;
@@ -104,12 +104,12 @@ body {
     /* Sidebar matching the app background */
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 189 94% 43%;
+    --sidebar-primary: 189 100% 44%;
     --sidebar-primary-foreground: 222 47% 11%;
     --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 189 94% 43%;
+    --sidebar-ring: 189 100% 44%;
   }
 }
 

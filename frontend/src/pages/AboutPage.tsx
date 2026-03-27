@@ -9,9 +9,9 @@ export default function AboutPage() {
       
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">About the Developer</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Maintained by</h2>
         <p className="text-muted-foreground mt-2 text-lg">
-          The creator and maintainer behind Traefik Manager.
+          Creator and maintainer of Pre Rup Traefik Manager.
         </p>
       </div>
 

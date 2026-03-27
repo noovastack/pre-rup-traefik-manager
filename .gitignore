@@ -3,10 +3,10 @@ frontend/node_modules/
 frontend/dist/
 backend/tmp/
 backend/server
+backend/tm-backend
+backend/*.log
 
 # Secrets and credentials
-*.kubeconfig
-*kubeconfig*
 *.key
 *.pem
 *.crt
@@ -23,3 +23,10 @@ backend/server
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude / AI
+CLAUDE.md
+.claude/
+.cursor/
+.aider*
+.copilot/

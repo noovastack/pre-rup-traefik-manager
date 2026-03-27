@@ -25,7 +25,7 @@ func (h *NamespaceHandler) Routes() chi.Router {
 func (h *NamespaceHandler) List(w http.ResponseWriter, r *http.Request) {
 	nss, err := h.manager.Get(r).GetNamespaces(r.Context())
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, nss)

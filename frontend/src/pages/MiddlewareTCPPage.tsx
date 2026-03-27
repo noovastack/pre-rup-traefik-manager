@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Plus, Search, Check, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
 import { k8sApi, capabilitiesApi } from '@/api';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -30,6 +31,7 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
   const deleteMutation = useMutation({
     mutationFn: (name: string) => k8sApi.deleteMiddlewareTCP(namespace, name),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['middlewaretcps'] }),
+    onError: (err: Error) => toast.error(`Failed to delete: ${err.message}`),
   });
 
   const { data: caps } = useQuery({

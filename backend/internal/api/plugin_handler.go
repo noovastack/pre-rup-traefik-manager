@@ -32,40 +32,40 @@ func (h *PluginHandler) Routes() chi.Router {
 func (h *PluginHandler) Get(w http.ResponseWriter, r *http.Request) {
 	namespace := chi.URLParam(r, "namespace")
 	if namespace == "" {
-		http.Error(w, "namespace parameter is required", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "VALIDATION_FAILED", "namespace parameter is required")
 		return
 	}
 
 	config, err := h.manager.Get(r).GetPluginConfig(r.Context(), namespace, "traefik-plugins")
 	if err != nil {
-		http.Error(w, "failed to get plugin config: "+err.Error(), http.StatusInternalServerError)
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(config)
+	json.NewEncoder(w).Encode(config) //nolint:errcheck
 }
 
 // Update handles PUT /api/v1/namespaces/{namespace}/plugins
 func (h *PluginHandler) Update(w http.ResponseWriter, r *http.Request) {
 	namespace := chi.URLParam(r, "namespace")
 	if namespace == "" {
-		http.Error(w, "namespace parameter is required", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "VALIDATION_FAILED", "namespace parameter is required")
 		return
 	}
 
 	var data map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "INVALID_JSON", "invalid request body")
 		return
 	}
 
 	err := h.manager.Get(r).UpdatePluginConfig(r.Context(), namespace, "traefik-plugins", data)
 	if err != nil {
-		http.Error(w, "failed to update plugin config: "+err.Error(), http.StatusInternalServerError)
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"}) //nolint:errcheck
 }

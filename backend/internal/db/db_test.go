@@ -137,6 +137,80 @@ func TestAddClusterDuplicateNameFails(t *testing.T) {
 	}
 }
 
+// ── User function tests ──────────────────────────────────────────────────────
+
+func TestCreateAndGetUser(t *testing.T) {
+	setupTestDB(t)
+
+	if err := CreateUser("alice", "hashed-password"); err != nil {
+		t.Fatalf("CreateUser: %v", err)
+	}
+
+	u, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatalf("GetUserByUsername: %v", err)
+	}
+	if u == nil {
+		t.Fatal("expected user, got nil")
+	}
+	if u.Username != "alice" {
+		t.Errorf("Username = %q, want %q", u.Username, "alice")
+	}
+	if u.PasswordHash != "hashed-password" {
+		t.Errorf("PasswordHash = %q, want %q", u.PasswordHash, "hashed-password")
+	}
+}
+
+func TestGetUserByUsernameNotFound(t *testing.T) {
+	setupTestDB(t)
+
+	u, err := GetUserByUsername("nobody")
+	if err != nil {
+		t.Fatalf("unexpected error for missing user: %v", err)
+	}
+	if u != nil {
+		t.Errorf("expected nil for missing user, got %+v", u)
+	}
+}
+
+func TestCountUsers_Empty(t *testing.T) {
+	setupTestDB(t)
+
+	n, err := CountUsers()
+	if err != nil {
+		t.Fatalf("CountUsers: %v", err)
+	}
+	if n != 0 {
+		t.Errorf("expected 0 users, got %d", n)
+	}
+}
+
+func TestCountUsers_AfterCreate(t *testing.T) {
+	setupTestDB(t)
+
+	CreateUser("u1", "h1")
+	CreateUser("u2", "h2")
+
+	n, err := CountUsers()
+	if err != nil {
+		t.Fatalf("CountUsers: %v", err)
+	}
+	if n != 2 {
+		t.Errorf("expected 2 users, got %d", n)
+	}
+}
+
+func TestCreateUser_DuplicateUsernameFails(t *testing.T) {
+	setupTestDB(t)
+
+	if err := CreateUser("bob", "hash"); err != nil {
+		t.Fatalf("first CreateUser: %v", err)
+	}
+	if err := CreateUser("bob", "hash2"); err == nil {
+		t.Error("expected UNIQUE constraint error for duplicate username, got nil")
+	}
+}
+
 func TestAddClusterEmptyCACert(t *testing.T) {
 	setupTestDB(t)
 
@@ -154,5 +228,90 @@ func TestAddClusterEmptyCACert(t *testing.T) {
 	}
 	if c.EncryptedCACert != "" {
 		t.Errorf("expected empty CA cert, got %q", c.EncryptedCACert)
+	}
+}
+
+func TestGetClusterByID(t *testing.T) {
+	setupTestDB(t)
+	id, _ := AddCluster("by-id", "https://test:6443", "tok", "ca")
+	
+	c, err := GetClusterByID(id)
+	if err != nil || c == nil {
+		t.Fatalf("GetClusterByID: %v", err)
+	}
+	if c.Name != "by-id" {
+		t.Errorf("Name = %q, want by-id", c.Name)
+	}
+
+	c2, err := GetClusterByID(99999)
+	if err != nil {
+		t.Errorf("expected no error for missing cluster ID, got %v", err)
+	}
+	if c2 != nil {
+		t.Errorf("expected nil for missing cluster")
+	}
+}
+
+func TestUserManagementComprehensive(t *testing.T) {
+	setupTestDB(t)
+
+	err := CreateUserFull("fulluser", "hash2", "Full User", "full@test.com", "admin", true)
+	if err != nil {
+		t.Fatalf("CreateUserFull failed: %v", err)
+	}
+
+	users, err := ListUsers()
+	if err != nil || len(users) != 1 {
+		t.Fatalf("ListUsers failed or count mismatch")
+	}
+
+	fullUser := users[0]
+	u, err := GetUserByID(fullUser.ID)
+	if err != nil || u == nil {
+		t.Fatalf("GetUserByID failed")
+	}
+	if u.Role != "admin" || !u.MustChangeCredentials {
+		t.Errorf("invalid mapping of UserRecord fields")
+	}
+
+	uNotFound, err := GetUserByID(9999)
+	if err != nil {
+		t.Errorf("expected no error for not found ID, got %v", err)
+	}
+	if uNotFound != nil {
+		t.Errorf("expected nil result")
+	}
+
+	err = SetupCredentials(fullUser.ID, "fulluser_new", "hash_new")
+	if err != nil {
+		t.Errorf("SetupCredentials failed: %v", err)
+	}
+	u, _ = GetUserByID(fullUser.ID)
+	if u.Username != "fulluser_new" || u.PasswordHash != "hash_new" || u.MustChangeCredentials {
+		t.Errorf("SetupCredentials did not apply correctly")
+	}
+
+	err = UpdateUserProfile(fullUser.ID, "New Name", "new@test.com")
+	if err != nil {
+		t.Errorf("UpdateUserProfile failed")
+	}
+
+	err = UpdatePassword(fullUser.ID, "hash3")
+	if err != nil {
+		t.Errorf("UpdatePassword failed")
+	}
+
+	err = UpdateUserRole(fullUser.ID, "viewer")
+	if err != nil {
+		t.Errorf("UpdateUserRole failed")
+	}
+	u, _ = GetUserByID(fullUser.ID)
+	if u.Role != "viewer" {
+		t.Errorf("UpdateUserRole did not apply")
+	}
+
+	err = DeleteUser(fullUser.ID)
+	if err != nil {
+		t.Errorf("DeleteUser failed")
 	}
 }

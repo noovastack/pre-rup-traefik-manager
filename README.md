@@ -1,4 +1,8 @@
-# Traefik Manager
+<div align="center">
+  <img src="traefik-manager.jpeg" alt="Traefik Manager" width="220">
+</div>
+
+# Pre Rup Traefik Manager
 
 A web GUI for managing Traefik Proxy running in a Kubernetes cluster without writing complex YAML manifests.
 

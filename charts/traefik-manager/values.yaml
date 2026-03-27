@@ -1,10 +1,10 @@
 replicaCount: 1
 
 image:
-  repository: traefik-manager
+  repository: ghcr.io/noovastack/traefik-manager
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -44,13 +44,13 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
 
 nodeSelector: {}
 tolerations: []
@@ -69,3 +69,4 @@ persistence:
 encryptionKeySecret:
   name: ""   # Secret name; leave empty to use auto-generated key
   key: encryptionKey
+

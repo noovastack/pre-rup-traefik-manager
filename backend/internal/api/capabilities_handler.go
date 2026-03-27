@@ -29,7 +29,7 @@ func (h *CapabilitiesHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	groups, err := k8s.Discovery().ServerGroups()
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "DISCOVERY_ERROR", "failed to query API groups: "+err.Error())
+		internalError(w, err, "DISCOVERY_ERROR")
 		return
 	}
 

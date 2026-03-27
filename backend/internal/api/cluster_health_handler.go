@@ -50,7 +50,7 @@ func (h *ClusterHealthHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Kubernetes version + platform
 	version, err := k8s.Discovery().ServerVersion()
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "VERSION_ERROR", "failed to get server version: "+err.Error())
+		internalError(w, err, "VERSION_ERROR")
 		return
 	}
 	resp.KubernetesVersion = version.GitVersion
@@ -59,7 +59,7 @@ func (h *ClusterHealthHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Node health
 	nodes, err := k8s.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "NODES_ERROR", "failed to list nodes: "+err.Error())
+		internalError(w, err, "NODES_ERROR")
 		return
 	}
 	resp.Nodes.Total = len(nodes.Items)
@@ -75,7 +75,7 @@ func (h *ClusterHealthHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Pod health (all namespaces)
 	pods, err := k8s.CoreV1().Pods("").List(ctx, metav1.ListOptions{})
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PODS_ERROR", "failed to list pods: "+err.Error())
+		internalError(w, err, "PODS_ERROR")
 		return
 	}
 	resp.Pods.Total = len(pods.Items)

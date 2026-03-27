@@ -43,7 +43,7 @@ kubectl apply -f deploy/deployment.yaml
 
 ## 2. Docker Compose
 
-If you are not running Kubernetes, or if you simply want to test the application logic connected to a local Docker sock or a remote Kubeconfig without a full cluster deployment, you can use Docker Compose.
+If you are not running Kubernetes, or if you simply want to test the application logic connected to a local Docker sock without a full cluster deployment, you can use Docker Compose.
 
 ### Option A: Standard Deployment
 This spins up Traefik Manager using the pre-configured `docker-compose.yml`. It builds the React and Go binaries natively and serves them.
@@ -68,4 +68,3 @@ docker-compose -f docker-compose.dev.yml up -d --build
 - **Backend API:** `http://localhost:8080`
 
 **Environment Variables:**
-To connect this local development stack to a real remote Kubernetes cluster, provide a valid KUBECONFIG file mapped to the backend container, or export the `KUBECONFIG` variable to your host before spinning up the stack if modifying the `docker-compose.dev.yml` volumes.

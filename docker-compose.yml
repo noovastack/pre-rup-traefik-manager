@@ -40,6 +40,7 @@ services:
       TM_CONFIG_PATH: /etc/traefik/traefik-manager/dynamic_conf.yaml
       TM_ADDR: :8080
       TM_DOCKER_HOST: http://socket-proxy:2375
+      TM_ENCRYPTION_KEY: ${TM_ENCRYPTION_KEY}
     depends_on:
       - socket-proxy
     volumes:

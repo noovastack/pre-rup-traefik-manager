@@ -25,13 +25,22 @@ FROM alpine:3.19
 
 RUN apk add --no-cache ca-certificates tzdata sqlite-libs
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /app
 COPY --from=backend-builder /traefik-manager .
 COPY --from=frontend-builder /app/frontend/dist ./dist
+
+RUN mkdir -p /data && chown -R appuser:appgroup /data /app
 
 # The backend reads TM_ADDR by default to know where to bind
 ENV TM_ADDR=:8080
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:8080/healthz || exit 1
+
+USER appuser
 
 ENTRYPOINT ["/app/traefik-manager"]

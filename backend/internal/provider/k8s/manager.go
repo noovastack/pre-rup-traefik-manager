@@ -9,26 +9,25 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// DefaultClusterName is the identifier for the local cluster the pod was deployed into.
-const DefaultClusterName = "local"
+const localClusterName = "local"
 
 type ManagerImpl struct {
 	mu      sync.RWMutex
 	clients map[string]*Client // maps cluster name -> *k8s.Client implementation
-
-	// Local provider used when no header is present
-	local *Client
 }
 
-func NewManager(localClient *Client) *ManagerImpl {
-	m := &ManagerImpl{
+func NewManager() *ManagerImpl {
+	return &ManagerImpl{
 		clients: make(map[string]*Client),
-		local:   localClient,
 	}
-	
-	// Register the local cluster by default
-	m.clients[DefaultClusterName] = localClient
-	return m
+}
+
+// RegisterLocalClient registers a pre-built in-cluster client as "local".
+// Called once at startup when running inside a Kubernetes pod.
+func (m *ManagerImpl) RegisterLocalClient(client *Client) {
+	m.mu.Lock()
+	m.clients[localClusterName] = client
+	m.mu.Unlock()
 }
 
 // AddCluster builds a client from a bearer token and registers it in the pool.
@@ -46,13 +45,6 @@ func (m *ManagerImpl) AddCluster(id int, name, serverURL, token, caCert string) 
 	return nil
 }
 
-// RemoveCluster deletes a cluster's connection pool by name.
-func (m *ManagerImpl) RemoveCluster(id int) {
-	// Need to find the cluster by ID from the DB in a real scenario,
-	// but for now the handler uses the DB ID to delete. 
-	// We'll expose a RemoveClusterByName for simplicity in memory manipulation
-}
-
 func (m *ManagerImpl) RemoveClusterByName(name string) {
 	m.mu.Lock()
 	delete(m.clients, name)
@@ -60,11 +52,11 @@ func (m *ManagerImpl) RemoveClusterByName(name string) {
 	log.Printf("Removed remote cluster connection: %s", name)
 }
 
-// Get implements provider.Manager. It inspects the request header.
+// Get implements provider.Manager. Returns nil if the requested cluster is not connected.
 func (m *ManagerImpl) Get(r *http.Request) provider.Provider {
 	ctxName := r.Header.Get("X-Cluster-Context")
-	if ctxName == "" || ctxName == DefaultClusterName {
-		return m.local
+	if ctxName == "" {
+		ctxName = localClusterName
 	}
 
 	m.mu.RLock()
@@ -72,25 +64,27 @@ func (m *ManagerImpl) Get(r *http.Request) provider.Provider {
 	m.mu.RUnlock()
 
 	if !exists {
-		// Fallback to local if requested cluster isn't loaded (e.g., deleted or error)
-		log.Printf("Warning: Requested cluster context '%s' not found, falling back to local", ctxName)
-		return m.local
+		return nil
 	}
 
 	return client
 }
 
 // GetK8s implements provider.Manager for handlers that need raw K8s access.
+// Returns nil if the requested cluster is not connected.
 func (m *ManagerImpl) GetK8s(r *http.Request) kubernetes.Interface {
 	ctxName := r.Header.Get("X-Cluster-Context")
-	
+	if ctxName == "" {
+		ctxName = localClusterName
+	}
+
 	m.mu.RLock()
 	client, exists := m.clients[ctxName]
 	m.mu.RUnlock()
 
-	if !exists || ctxName == "" {
-		return m.local.K8s
+	if !exists {
+		return nil
 	}
-	
+
 	return client.K8s
 }

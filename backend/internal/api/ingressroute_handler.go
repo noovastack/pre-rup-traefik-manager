@@ -33,7 +33,7 @@ func (h *IngressRouteHandler) List(w http.ResponseWriter, r *http.Request) {
 	namespace := chi.URLParam(r, "namespace")
 	routes, err := h.manager.Get(r).GetIngressRoutes(namespace)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "K8S_ERROR", err.Error())
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, routes)
@@ -49,7 +49,7 @@ func (h *IngressRouteHandler) Get(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "IngressRoute not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "K8S_ERROR", err.Error())
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, route)
@@ -68,7 +68,7 @@ func (h *IngressRouteHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	created, err := h.manager.Get(r).CreateIngressRoute(namespace, &ir)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "K8S_ERROR", err.Error())
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusCreated, created)
@@ -97,7 +97,7 @@ func (h *IngressRouteHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := h.manager.Get(r).UpdateIngressRoute(namespace, ir.Name, &ir)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "K8S_ERROR", err.Error())
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 
@@ -114,7 +114,7 @@ func (h *IngressRouteHandler) Delete(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "IngressRoute not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "K8S_ERROR", err.Error())
+		internalError(w, err, "K8S_ERROR")
 		return
 	}
 	

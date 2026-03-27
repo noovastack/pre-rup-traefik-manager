@@ -33,7 +33,7 @@ func (h *GatewayHandler) List(w http.ResponseWriter, r *http.Request) {
 	namespace := chi.URLParam(r, "namespace")
 	gateways, err := h.manager.Get(r).GetGateways(namespace)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, gateways)
@@ -49,7 +49,7 @@ func (h *GatewayHandler) Get(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "Gateway not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusOK, gw)
@@ -67,7 +67,7 @@ func (h *GatewayHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	created, err := h.manager.Get(r).CreateGateway(namespace, &gw)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 	respondJSON(w, http.StatusCreated, created)
@@ -95,7 +95,7 @@ func (h *GatewayHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := h.manager.Get(r).UpdateGateway(namespace, gw.Name, &gw)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 
@@ -112,7 +112,7 @@ func (h *GatewayHandler) Delete(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusNotFound, "NOT_FOUND", "Gateway not found")
 			return
 		}
-		respondError(w, http.StatusInternalServerError, "PROVIDER_ERROR", err.Error())
+		internalError(w, err, "PROVIDER_ERROR")
 		return
 	}
 
