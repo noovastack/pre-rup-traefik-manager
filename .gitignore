@@ -1,10 +1,14 @@
 # Build artifacts
 frontend/node_modules/
 frontend/dist/
+frontend/coverage/
 backend/tmp/
 backend/server
 backend/tm-backend
+backend/cmd/server/server
 backend/*.log
+.bin/
+.image_tag
 
 # Secrets and credentials
 *.key
