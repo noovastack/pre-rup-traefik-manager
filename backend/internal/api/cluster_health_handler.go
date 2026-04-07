@@ -7,7 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 )
 
 type ClusterHealthHandler struct {

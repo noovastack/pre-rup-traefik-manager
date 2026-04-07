@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/noovastack/traefik-manager/internal/db"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/db"
 )
 
 func setupUserDB(t *testing.T) {

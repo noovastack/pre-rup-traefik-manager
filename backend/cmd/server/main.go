@@ -13,10 +13,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/noovastack/traefik-manager/internal/api"
-	"github.com/noovastack/traefik-manager/internal/crypto"
-	"github.com/noovastack/traefik-manager/internal/db"
-	"github.com/noovastack/traefik-manager/internal/provider/k8s"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/api"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/crypto"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/db"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider/k8s"
 )
 
 func main() {

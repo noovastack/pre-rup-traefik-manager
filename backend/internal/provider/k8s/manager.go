@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 	"k8s.io/client-go/kubernetes"
 )
 

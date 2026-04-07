@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/noovastack/traefik-manager/internal/db"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/db"
 )
 
 // setupAuthDB initialises an in-memory DB and seeds a test user.

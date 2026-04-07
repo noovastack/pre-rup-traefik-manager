@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	traefikalphav1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 )
 
 type ServersTransportHandler struct {

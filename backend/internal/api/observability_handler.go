@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 )
 
 // ObservabilityHandler handles requests for telemetry settings.

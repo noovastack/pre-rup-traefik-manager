@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/noovastack/traefik-manager/internal/crypto"
-	"github.com/noovastack/traefik-manager/internal/db"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/crypto"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/db"
 )
 
 type ClusterManager interface {

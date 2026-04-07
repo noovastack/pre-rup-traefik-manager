@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/noovastack/traefik-manager/internal/db"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/db"
 )
 
 type ProfileHandler struct{}

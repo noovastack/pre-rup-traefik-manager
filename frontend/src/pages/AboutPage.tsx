@@ -9,9 +9,9 @@ export default function AboutPage() {
       
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Maintained by</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">About Traefik Manager</h2>
         <p className="text-muted-foreground mt-2 text-lg">
-          Creator and maintainer of Pre Rup Traefik Manager.
+          Pre Rup Traefik Manager is developed and maintained by Chhousour Leok.
         </p>
       </div>
 

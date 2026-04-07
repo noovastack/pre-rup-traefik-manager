@@ -12,7 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 )
 
 // testJWTSecret is the shared secret used to sign tokens in all api package tests.

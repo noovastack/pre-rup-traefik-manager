@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"k8s.io/apimachinery/pkg/api/errors"
 
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 )
 

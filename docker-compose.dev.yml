@@ -11,19 +11,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - traefik-data:/etc/traefik/traefik-manager
-    networks:
-      - proxy
-
-  # ── Docker Socket Proxy (Read Only) ─────────────────────────────────────────
-  socket-proxy:
-    image: tecnativa/docker-socket-proxy
-    container_name: socket-proxy-dev
-    restart: unless-stopped
-    environment:
-      CONTAINERS: 1
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - proxy
 
@@ -37,18 +24,14 @@ services:
     environment:
       CGO_ENABLED: "1"
       TM_DB_PATH: /data/traefik-manager.db
-      TM_CONFIG_PATH: /etc/traefik/traefik-manager/dynamic_conf.yaml
       TM_ADDR: :8080
-      TM_DOCKER_HOST: http://socket-proxy:2375
+      TM_ENCRYPTION_KEY: ${TM_ENCRYPTION_KEY}
     volumes:
       # Mount the entire repository to enable live code edits
       - .:/app
       - tm-data:/data
-      - traefik-data:/etc/traefik/traefik-manager
       # Persist Go modules to speed up container restarts
       - go-mod-cache:/go/pkg/mod
-    depends_on:
-      - socket-proxy
     networks:
       - proxy
     labels:
@@ -84,7 +67,6 @@ services:
       - "traefik.http.services.tm-ui.loadbalancer.server.port=5177"
 
 volumes:
-  traefik-data:
   tm-data:
   go-mod-cache:
 

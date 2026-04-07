@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/noovastack/traefik-manager/internal/db"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/db"
 )
 
 type AuthHandler struct {

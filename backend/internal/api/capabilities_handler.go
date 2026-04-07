@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 )
 
 type CapabilitiesHandler struct {

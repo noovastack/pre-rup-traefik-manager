@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,7 +16,7 @@ import (
 	"github.com/go-chi/cors"
 	"golang.org/x/time/rate"
 
-	"github.com/noovastack/traefik-manager/internal/provider"
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 )
 
 // NewRouter builds and returns the application's chi router.
@@ -33,11 +34,18 @@ func NewRouter(manager provider.Manager) http.Handler {
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-Cluster-Context"},
 	}))
 
-	// Derive JWT secret: TM_JWT_SECRET env var, or fall back to TM_ENCRYPTION_KEY
+	// Derive JWT secret: TM_JWT_SECRET env var, or fall back to TM_ENCRYPTION_KEY.
+	// TM_ENCRYPTION_KEY may be a 64-char hex string (preferred) or a 32-char raw string.
 	jwtSecret := []byte(os.Getenv("TM_JWT_SECRET"))
 	if len(jwtSecret) == 0 {
-		if encKey := os.Getenv("TM_ENCRYPTION_KEY"); len(encKey) >= 32 {
-			jwtSecret = []byte(encKey[:32])
+		if encKey := os.Getenv("TM_ENCRYPTION_KEY"); encKey != "" {
+			if len(encKey) == 64 {
+				if decoded, err := hex.DecodeString(encKey); err == nil && len(decoded) == 32 {
+					jwtSecret = decoded
+				}
+			} else if len(encKey) >= 32 {
+				jwtSecret = []byte(encKey[:32])
+			}
 		}
 	}
 	if len(jwtSecret) == 0 {

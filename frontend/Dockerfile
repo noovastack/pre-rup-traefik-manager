@@ -8,7 +8,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# ── Runtime stage (served by the Go backend as static files) ─────────────────
+# ── Runtime stage (nginx serves static assets; Traefik routes /api to backend) ──
 FROM nginx:1.25-alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html

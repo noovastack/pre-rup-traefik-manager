@@ -1,4 +1,4 @@
-module github.com/noovastack/traefik-manager
+module github.com/noovastack/pre-rup-traefik-manager
 
 go 1.24.0
 

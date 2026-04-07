@@ -22,14 +22,25 @@ var (
 )
 
 // getKey returns the 32-byte AES key via a 3-tier priority:
-//  1. TM_ENCRYPTION_KEY env var (must be exactly 32 ASCII bytes)
+//  1. TM_ENCRYPTION_KEY env var — either a 64-char hex string (32 decoded bytes, preferred)
+//     or a legacy 32-char ASCII string used directly as bytes.
 //  2. Key file adjacent to the DB (derived from TM_DB_PATH)
 //  3. Auto-generated random key (written to the key file, warned in logs)
 func getKey() string {
 	keyOnce.Do(func() {
-		if k := os.Getenv("TM_ENCRYPTION_KEY"); len(k) == 32 {
-			encryptionKey = k
-			return
+		if k := os.Getenv("TM_ENCRYPTION_KEY"); k != "" {
+			if len(k) == 64 {
+				// Preferred format: 64 hex chars → decode to 32 raw bytes
+				if decoded, err := hex.DecodeString(k); err == nil && len(decoded) == 32 {
+					encryptionKey = string(decoded)
+					return
+				}
+			}
+			if len(k) == 32 {
+				// Legacy format: 32 ASCII chars used directly as AES key bytes
+				encryptionKey = k
+				return
+			}
 		}
 
 		dbPath := os.Getenv("TM_DB_PATH")
