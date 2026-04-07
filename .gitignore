@@ -42,9 +42,16 @@ Thumbs.db
 *.out
 coverage.html
 
-# Claude / AI
+# Claude / AI tools
 CLAUDE.md
 .claude/
+.agents/
 .cursor/
 .aider*
 .copilot/
+
+# Demo / scratch files
+whoami.yaml
+angkor-wat-demo.yaml
+demo-workloads.yaml
+doc/

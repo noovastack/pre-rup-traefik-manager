@@ -5,8 +5,7 @@ import { useTopologyGraph } from '@/hooks/useTopologyGraph';
 import { getLayoutedElements } from '@/lib/topologyUtils';
 import { ResourceNode } from '@/components/topology/ResourceNode';
 import { Input } from '@/components/ui/input';
-import { Search, X } from 'lucide-react';
-import { angkorWatNodes, angkorWatEdges } from '@/lib/angkorWatMockup';
+import { Search } from 'lucide-react';
 
 const nodeTypes = {
   resourceNode: ResourceNode,
@@ -19,11 +18,9 @@ export function TopologyPage({ namespace }: { namespace: string }) {
   const [isRendered, setIsRendered] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showMockup, setShowMockup] = useState(true);
-
   useEffect(() => {
-    const activeNodes = (initialNodes.length === 0 && !isLoading && showMockup) ? angkorWatNodes : initialNodes;
-    const activeEdges = (initialNodes.length === 0 && !isLoading && showMockup) ? angkorWatEdges : initialEdges;
+    const activeNodes = initialNodes;
+    const activeEdges = initialEdges;
 
     if (activeNodes.length > 0) {
       const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
@@ -115,7 +112,7 @@ export function TopologyPage({ namespace }: { namespace: string }) {
       setEdges([]);
       setIsRendered(true);
     }
-  }, [initialNodes, initialEdges, setNodes, setEdges, selectedNodeId, searchQuery, showMockup, isLoading]);
+  }, [initialNodes, initialEdges, setNodes, setEdges, selectedNodeId, searchQuery, isLoading]);
 
   if (isLoading && !isRendered) {
     return <div className="text-zinc-500 animate-pulse">Loading Topology map…</div>;
@@ -144,17 +141,6 @@ export function TopologyPage({ namespace }: { namespace: string }) {
 
       {/* ── Canvas ── */}
       <div className="relative flex-1 min-h-0 bg-muted/20">
-        {initialNodes.length === 0 && showMockup && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-indigo-500/10 border border-indigo-500/30 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-3">
-            <span className="text-sm font-medium text-indigo-500 dark:text-indigo-300 flex items-center gap-2">
-              ✨ Viewing Mockup Architecture: Angkor Wat
-            </span>
-            <button onClick={() => setShowMockup(false)} className="text-indigo-400 hover:text-foreground transition-colors">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
         {nodes.length > 0 ? (
           <ReactFlow
             nodes={nodes}
