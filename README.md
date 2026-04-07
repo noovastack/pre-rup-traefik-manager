@@ -1,54 +1,99 @@
 <div align="center">
-  <img src="traefik-manager.jpeg" alt="Traefik Manager" width="220">
+  <img src="traefik-manager.jpeg" alt="Pre Rup Traefik Manager" width="220">
+  <h1>Pre Rup Traefik Manager</h1>
+  <p>A web GUI for managing Traefik Proxy on Kubernetes — no YAML required.</p>
 </div>
 
-# Pre Rup Traefik Manager
+---
 
-A web GUI for managing Traefik Proxy running in a Kubernetes cluster without writing complex YAML manifests.
+## What It Does
+
+Pre Rup Traefik Manager gives you a visual interface to create, edit, and delete Traefik and Kubernetes Gateway API resources directly in your cluster. The backend is stateless — Kubernetes is always the source of truth.
+
+**Manages:**
+- HTTP, TCP, and UDP routing (`IngressRoute`, `IngressRouteTCP`, `IngressRouteUDP`)
+- Middlewares (HTTP and TCP)
+- TLS options and stores
+- Traffic shaping (`TraefikService` — canary, blue/green, mirroring)
+- Upstream transports (`ServersTransport`, `ServersTransportTCP`)
+- Kubernetes Gateway API (`GatewayClass`, `Gateway`, `HTTPRoute`)
+- Observability configuration (OpenTelemetry, Datadog, Prometheus)
+- WASM plugins
+- Multi-cluster support
+
+## Quick Start
+
+### Prerequisites
+- A running Kubernetes cluster (k3s, minikube, EKS, GKE, etc.)
+- Traefik v3 installed with CRDs
+
+### Deploy with Helm
+
+```bash
+helm upgrade --install traefik-manager ./charts/traefik-manager \
+  --namespace traefik-manager \
+  --create-namespace
+```
+
+```bash
+kubectl port-forward svc/traefik-manager -n traefik-manager 8080:8080
+```
+
+Open `http://localhost:8080` — default login is `admin` / `admin` (you will be prompted to change it).
+
+### Run with Docker
+
+```bash
+cp .env.example .env          # set TM_ENCRYPTION_KEY
+docker-compose up -d --build
+```
+
+Open `http://localhost:8081`.
+
+### Local Development
+
+```bash
+# Full stack with hot-reload
+docker-compose -f docker-compose.dev.yml up -d
+
+# Or run directly
+cd backend && go run ./cmd/server   # API on :8080
+cd frontend && npm install && npm run dev  # UI on :5177
+```
+
+## Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `TM_ENCRYPTION_KEY` | auto-generated | 64-char hex key for AES-256-GCM encryption of stored cluster credentials |
+| `TM_JWT_SECRET` | derived from above | JWT signing secret |
+| `TM_ADMIN_PASSWORD` | `admin` | Initial admin password |
+| `TM_DB_PATH` | `./traefik-manager.db` | SQLite database path |
+| `TM_ADDR` | `:8080` | Backend bind address |
+
+Generate a secure encryption key:
+```bash
+openssl rand -hex 32
+```
 
 ## Architecture
 
 ```
-Admin UI (React)  →  Go REST API  →  client-go  →  Kubernetes API  →  Traefik Ingress Controller
+React UI  →  Go REST API  →  client-go  →  Kubernetes API  →  Traefik CRDs
 ```
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for a complete visual breakdown and explanation of how the UI, backend API, and infrastructure orchestrators communicate.
+The Go backend resolves the `X-Cluster-Context` header on every request to route to the correct Kubernetes client. Cluster credentials are stored encrypted in SQLite and loaded into an in-memory pool on startup.
 
-## Quick Start (Kubernetes)
+See [ARCHITECTURE.md](ARCHITECTURE.md) for a full breakdown.
 
-### Prerequisites
-- A working Kubernetes cluster (k3s, minikube, EKS, etc.)
-- Traefik installed as an Ingress Controller (with CRDs available)
+## Multi-Cluster
 
-### Deployment
+Add remote clusters from the UI — provide the API server URL and a bearer token. Credentials are encrypted at rest with AES-256-GCM. Switch between clusters using the cluster switcher in the sidebar.
 
-Traefik Manager is designed to run inside your cluster and interact directly with the Kubernetes API using a dedicated ServiceAccount. The recommended installation method is using Helm.
+## Contributing
 
-1. **Deploy via Helm:**
-   ```bash
-   helm upgrade --install traefik-manager ./charts/traefik-manager \
-     --namespace traefik-manager \
-     --create-namespace \
-     --set service.type=ClusterIP \
-     --set service.port=8080
-   ```
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-2. **Access the UI:**
-   ```bash
-   kubectl port-forward svc/traefik-manager -n traefik-manager 8080:8080
-   ```
-   Open `http://localhost:8080` in your browser.
+## License
 
-## Roadmap
-
-- **Phase 1 (MVP):** Read/Write `IngressRoute` CRDs, Namespace and Service auto-discovery. (Completed)
-- **Phase 2:** Manage Traefik `Middleware` CRDs (Basic Auth, UI Forms). (Completed)
-- **Phase 3:** Cluster Packaging & RBAC. (Completed)
-- **Phase 4:** Attach Middlewares to Routes, Resource Edit capabilities. (Completed)
-- **Phase 5:** TLS Options and Stories Management. (Completed)
-- **Phase 6:** Custom Helm chart packaging. (Completed)
-- **Phase 7 (Gateway API):** Support for Kubernetes Gateway API (HTTPRoute, Gateway, etc.). (Completed)
-- **Phase 8 (Observability):** Integrated UI for configuring OpenTelemetry, Datadog, Prometheus exporters.
-- **Phase 9 (Traffic Delivery):** Visual traffic splitting (Canary, Blue/Green, Mirroring using TraefikService).
-- **Phase 10 (Extensibility):** WASM Plugin management and deployment UI.
-- **Phase 11 (Multi-Environment):** Support for non-Kubernetes backends (Docker Swarm, Amazon ECS, Nomad) via adapter interfaces.
+[MIT](LICENSE) — Chhousour LEOK

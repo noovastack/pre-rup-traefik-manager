@@ -17,6 +17,7 @@ backend/*.log
 *.cert
 .env
 .env.*
+!.env.example
 *.secret
 
 # Database
