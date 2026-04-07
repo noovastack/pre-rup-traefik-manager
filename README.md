@@ -2,6 +2,7 @@
   <img src="traefik-manager.jpeg" alt="Pre Rup Traefik Manager" width="220">
   <h1>Pre Rup Traefik Manager</h1>
   <p>A web GUI for managing Traefik Proxy on Kubernetes — no YAML required.</p>
+  <p><em>"Pre Rup" (ព្រែរូប) means <strong>Transform Self</strong> in Khmer — named after the <a href="https://apsaraauthority.gov.kh/2021/08/12/pre-rup-temple/">Pre Rup temple</a> of Angkor, Cambodia.</em></p>
 </div>
 
 ---
