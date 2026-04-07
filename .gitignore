@@ -19,10 +19,24 @@ backend/*.log
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
+data/
+
+# Auto-generated encryption key file (written adjacent to DB when TM_ENCRYPTION_KEY is not set)
+.tm_encryption_key
 
 # OS
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Go test artifacts
+*.out
+coverage.html
 
 # Claude / AI
 CLAUDE.md
