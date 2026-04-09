@@ -97,4 +97,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE) — Chhousour LEOK
+[MIT](LICENSE) — Noova Stack Technology
