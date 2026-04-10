@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ClusterSwitcher } from '../components/ClusterSwitcher';
@@ -49,14 +49,14 @@ describe('ClusterSwitcher', () => {
   };
 
   it('renders correctly with default local cluster', async () => {
-    (clusterApi.getClusters as any).mockResolvedValue([]);
+    (clusterApi.getClusters as unknown).mockResolvedValue([]);
     renderComponent();
     expect(screen.getByText('Local Cluster')).toBeInTheDocument();
   });
 
   it('populates dropdown with fetched clusters', async () => {
     const user = userEvent.setup();
-    (clusterApi.getClusters as any).mockResolvedValue([
+    (clusterApi.getClusters as unknown).mockResolvedValue([
       { id: 1, name: 'prod-cluster' }
     ]);
     renderComponent();
@@ -75,7 +75,7 @@ describe('ClusterSwitcher', () => {
 
   it('switches active cluster on click and reloads page', async () => {
     const user = userEvent.setup();
-    (clusterApi.getClusters as any).mockResolvedValue([
+    (clusterApi.getClusters as unknown).mockResolvedValue([
       { id: 1, name: 'prod-cluster' }
     ]);
     renderComponent();
@@ -95,8 +95,8 @@ describe('ClusterSwitcher', () => {
 
   it('opens add cluster dialog and connects a new cluster', async () => {
     const user = userEvent.setup();
-    (clusterApi.getClusters as any).mockResolvedValue([]);
-    (clusterApi.createCluster as any).mockResolvedValue({ name: 'new-cluster' });
+    (clusterApi.getClusters as unknown).mockResolvedValue([]);
+    (clusterApi.createCluster as unknown).mockResolvedValue({ name: 'new-cluster' });
     
     renderComponent();
 
@@ -133,11 +133,11 @@ describe('ClusterSwitcher', () => {
 
   it('deletes a cluster when trash icon is clicked', async () => {
     const user = userEvent.setup();
-    (clusterApi.getClusters as any).mockResolvedValue([
+    (clusterApi.getClusters as unknown).mockResolvedValue([
       { id: 99, name: 'stale-cluster' }
     ]);
-    (clusterApi.deleteCluster as any).mockResolvedValue({});
-    (window.confirm as any).mockReturnValue(true); // User says yes to dialog
+    (clusterApi.deleteCluster as unknown).mockResolvedValue({});
+    (window.confirm as unknown).mockReturnValue(true); // User says yes to dialog
 
     renderComponent();
 

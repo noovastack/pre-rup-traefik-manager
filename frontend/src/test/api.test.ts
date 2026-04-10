@@ -5,7 +5,7 @@ vi.stubGlobal('fetch', mockFetch)
 
 // Minimal localStorage stub
 vi.stubGlobal('localStorage', {
-  getItem: (_key: string) => null,
+  getItem: () => null,
   setItem: () => {},
   removeItem: () => {},
 })

@@ -14,7 +14,7 @@ import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 export default function GatewaysPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingGateway, setEditingGateway] = useState<any>(null);
+  const [editingGateway, setEditingGateway] = useState<unknown>(null);
   const [yamlGateway, setYamlGateway] = useState<Gateway | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { data: gateways = [], isLoading } = useQuery({

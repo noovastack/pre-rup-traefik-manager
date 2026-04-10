@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { ReactFlow, Controls, Background, MiniMap, useNodesState, useEdgesState, BackgroundVariant, type Node, type Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useTopologyGraph } from '@/hooks/useTopologyGraph';
@@ -18,19 +18,22 @@ export function TopologyPage({ namespace }: { namespace: string }) {
   const [isRendered, setIsRendered] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  useEffect(() => {
+  const computed = useMemo(() => {
     const activeNodes = initialNodes;
     const activeEdges = initialEdges;
 
-    if (activeNodes.length > 0) {
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-        activeNodes,
-        activeEdges
-      );
+    if (activeNodes.length === 0) {
+      return { finalNodes: [], finalEdges: [] };
+    }
 
-      // If a node is selected, calculate its full upstream/downstream path
-      let connectedNodeIds = new Set<string>();
-      let connectedEdgeIds = new Set<string>();
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      activeNodes,
+      activeEdges
+    );
+
+    // If a node is selected, calculate its full upstream/downstream path
+    const connectedNodeIds = new Set<string>();
+    const connectedEdgeIds = new Set<string>();
 
       if (selectedNodeId) {
         connectedNodeIds.add(selectedNodeId);
@@ -104,15 +107,14 @@ export function TopologyPage({ namespace }: { namespace: string }) {
           };
       });
 
-      setNodes(finalNodes);
-      setEdges(finalEdges);
-      setIsRendered(true);
-    } else {
-      setNodes([]);
-      setEdges([]);
-      setIsRendered(true);
-    }
-  }, [initialNodes, initialEdges, setNodes, setEdges, selectedNodeId, searchQuery, isLoading]);
+    return { finalNodes, finalEdges };
+  }, [initialNodes, initialEdges, selectedNodeId, searchQuery]);
+
+  useLayoutEffect(() => {
+    setNodes(computed.finalNodes);
+    setEdges(computed.finalEdges);
+    queueMicrotask(() => setIsRendered(true));
+  }, [computed, setNodes, setEdges]);
 
   if (isLoading && !isRendered) {
     return <div className="text-zinc-500 animate-pulse">Loading Topology map…</div>;

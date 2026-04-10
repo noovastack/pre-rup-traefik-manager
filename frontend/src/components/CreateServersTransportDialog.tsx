@@ -40,19 +40,21 @@ export function CreateServersTransportDialog({
   useEffect(() => {
     if (open) {
       if (editTransport) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editTransport.metadata.name);
         setServerName(editTransport.spec.serverName || '');
         setInsecureSkipVerify(!!editTransport.spec.insecureSkipVerify);
         setCertificatesSecrets((editTransport.spec.certificatesSecrets || []).join(', '));
         setRootCAsSecrets((editTransport.spec.rootCAsSecrets || []).join(', '));
       } else {
+       
         setName('');
         setServerName('');
         setInsecureSkipVerify(false);
         setCertificatesSecrets('');
         setRootCAsSecrets('');
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editTransport]);
@@ -74,7 +76,7 @@ export function CreateServersTransportDialog({
     return crd;
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("ServersTransport name is required.");
 

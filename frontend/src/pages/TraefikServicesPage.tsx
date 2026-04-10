@@ -22,8 +22,8 @@ import { CreateTraefikServiceDialog } from '@/components/CreateTraefikServiceDia
 export function TraefikServicesPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingService, setEditingService] = useState<any>(undefined);
-  const [yamlService, setYamlService] = useState<any>(null);
+  const [editingService, setEditingService] = useState<unknown>(undefined);
+  const [yamlService, setYamlService] = useState<unknown>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: services = [], isLoading, error } = useQuery({
@@ -102,10 +102,10 @@ export function TraefikServicesPage({ namespace }: { namespace: string }) {
                     <TableCell className="text-zinc-300 w-[45%]">
                        <div className="flex flex-col gap-3 py-2 w-full pr-12">
                         {isWeighted && (() => {
-                          const totalWeight = svc.spec.weighted?.services?.reduce((acc: number, t: any) => acc + (t.weight || 1), 0) || 1;
+                          const totalWeight = svc.spec.weighted?.services?.reduce((acc: number, t: unknown) => acc + (t.weight || 1), 0) || 1;
                           return (
                             <div className="space-y-4 w-full">
-                              {svc.spec.weighted?.services?.map((target: any, i: number) => {
+                              {svc.spec.weighted?.services?.map((target: unknown, i: number) => {
                                 const weight = target.weight || 1;
                                 const percentage = (weight / totalWeight) * 100;
                                 return (
@@ -137,7 +137,7 @@ export function TraefikServicesPage({ namespace }: { namespace: string }) {
                               <span className="text-sm bg-zinc-800/80 text-zinc-200 px-2.5 py-1 rounded-md border border-zinc-700/50 flex-1 shadow-sm">{svc.spec.mirroring?.name}</span>
                               <span className="text-xs text-zinc-500 font-mono w-10 text-right opacity-80">100%</span>
                             </div>
-                            {svc.spec.mirroring?.mirrors?.map((mirror: any, i: number) => (
+                            {svc.spec.mirroring?.mirrors?.map((mirror: unknown, i: number) => (
                               <div key={i} className="flex items-center gap-3 w-full relative">
                                 <div className="absolute -left-[17px] top-[40%] -translate-y-1/2 w-4 h-[1px] bg-indigo-500/50 border-t border-dashed border-indigo-500/30" />
                                 <div className="absolute -left-[17px] top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)] border-2 border-zinc-900" />

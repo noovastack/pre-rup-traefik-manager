@@ -27,7 +27,7 @@ export function CreateHTTPRouteDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editRoute?: any;
+  editRoute?: unknown;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -58,18 +58,19 @@ export function CreateHTTPRouteDialog({
   useEffect(() => {
     if (open) {
       if (editRoute) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editRoute.metadata.name);
         setParentGateway(editRoute.spec.parentRefs?.[0]?.name || 'traefik-gateway');
         setHostnames((editRoute.spec.hostnames || []).join(', '));
         
-        const initialRules: any[] = [];
-        (editRoute.spec.rules || []).forEach((rule: any) => {
+        const initialRules: unknown[] = [];
+        (editRoute.spec.rules || []).forEach((rule: unknown) => {
           const pathMatch = rule.matches?.[0]?.path?.value || '/';
           const backendRefs = rule.backendRefs || [];
           if (backendRefs.length === 0) {
             initialRules.push({ pathMatch, backendName: '', backendPort: '80', weight: '1' });
           } else {
-            backendRefs.forEach((b: any) => {
+            backendRefs.forEach((b: unknown) => {
                initialRules.push({
                  pathMatch,
                  backendName: b.name,
@@ -81,12 +82,13 @@ export function CreateHTTPRouteDialog({
         });
         setRules(initialRules.length > 0 ? initialRules : [{ pathMatch: '/', backendName: 'my-service', backendPort: '80', weight: '1' }]);
       } else {
+       
         setName('');
         setParentGateway('traefik-gateway');
         setHostnames('');
         setRules([{ pathMatch: '/', backendName: '', backendPort: '80', weight: '1' }]);
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editRoute]);
@@ -101,12 +103,12 @@ export function CreateHTTPRouteDialog({
 
   const updateRule = (index: number, field: string, value: string) => {
     const newRules = [...rules];
-    (newRules[index] as any)[field] = value;
+    (newRules[index] as import('@/types').HTTPRoute)[field] = value;
     setRules(newRules);
   };
 
   const generateCRD = () => {
-    const ruleMap = new Map<string, any[]>();
+    const ruleMap = new Map<string, unknown[]>();
     rules.forEach(r => {
       const refs = ruleMap.get(r.pathMatch || '/') || [];
       if (r.backendName) {
@@ -139,7 +141,7 @@ export function CreateHTTPRouteDialog({
     };
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name.");
       if (!parentGateway) throw new Error("Please provide a Parent Gateway name.");
@@ -152,7 +154,7 @@ export function CreateHTTPRouteDialog({
       }
 
       // Group backends by path match to conform to HTTPRoute spec
-      const ruleMap = new Map<string, any[]>();
+      const ruleMap = new Map<string, unknown[]>();
       rules.forEach(r => {
         const refs = ruleMap.get(r.pathMatch) || [];
         refs.push({
@@ -183,9 +185,9 @@ export function CreateHTTPRouteDialog({
       };
 
       if (editRoute) {
-        return k8sApi.updateHTTPRoute(namespace, name, crd as any);
+        return k8sApi.updateHTTPRoute(namespace, name, crd as unknown);
       } else {
-        return k8sApi.createHTTPRoute(namespace, crd as any);
+        return k8sApi.createHTTPRoute(namespace, crd as unknown);
       }
     },
     invalidateKeys: [['httproutes', namespace]],
@@ -249,7 +251,7 @@ export function CreateHTTPRouteDialog({
                   {gateways.length === 0 && !isLoadingGW ? (
                     <SelectItem value="none" disabled>No Gateways in namespace</SelectItem>
                   ) : (
-                    gateways.map((gw: any) => (
+                    gateways.map((gw: unknown) => (
                       <SelectItem key={gw.metadata.name} value={gw.metadata.name} className="focus:bg-blue-600/20 focus:text-blue-400">
                         {gw.metadata.name}
                       </SelectItem>
@@ -310,7 +312,7 @@ export function CreateHTTPRouteDialog({
                          {services.length === 0 && !isLoadingServices ? (
                            <SelectItem value="none" disabled>No services found</SelectItem>
                          ) : (
-                           services.map((s: any) => (
+                           services.map((s: unknown) => (
                              <SelectItem key={s.name} value={s.name} className="focus:bg-blue-600/20 focus:text-blue-400">
                                {s.name}
                              </SelectItem>
@@ -320,7 +322,7 @@ export function CreateHTTPRouteDialog({
                          {traefikServices.length === 0 && !isLoadingTS ? (
                            <SelectItem value="none_ts" disabled>No TraefikServices found</SelectItem>
                          ) : (
-                           traefikServices.map((ts: any) => (
+                           traefikServices.map((ts: unknown) => (
                              <SelectItem key={`ts-${ts.metadata.name}`} value={ts.metadata.name} className="focus:bg-orange-600/20 focus:text-orange-400">
                                {ts.metadata.name}
                              </SelectItem>

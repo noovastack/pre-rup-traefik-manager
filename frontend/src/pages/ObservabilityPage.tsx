@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
 import { Activity, Save, CheckCircle2, Server, Globe2 } from 'lucide-react';
@@ -7,56 +7,65 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
+type TelemetryConfig = {
+  tracing: {
+    openTelemetry: { enabled: boolean; address: string };
+    zipkin: { enabled: boolean; httpEndpoint: string };
+  };
+  metrics: {
+    prometheus: { enabled: boolean; addRoutersLabels: boolean };
+    datadog: { enabled: boolean; address: string };
+  };
+};
+
 export default function ObservabilityPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const configMapName = 'traefik-telemetry';
 
-  const { data: config = {}, isLoading } = useQuery({
+  const { data: config = {}, isLoading } = useQuery<unknown>({
     queryKey: ['observability', namespace],
     queryFn: () => k8sApi.getTelemetryConfig(namespace, configMapName),
   });
 
   const mutation = useMutation({
-    mutationFn: (newConfig: any) => k8sApi.updateTelemetryConfig(namespace, configMapName, newConfig),
+    mutationFn: (newConfig: TelemetryConfig) => k8sApi.updateTelemetryConfig(namespace, configMapName, newConfig),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['observability', namespace] });
     },
   });
 
-  // Local state for the form
-  const [formData, setFormData] = useState({
+  // Local state for the form edits
+  const [edited, setEdited] = useState<TelemetryConfig | null>(null);
+
+  const serverFormData: TelemetryConfig = {
     tracing: {
       openTelemetry: {
-        enabled: false,
-        address: '',
+        enabled: Boolean(config?.tracing?.openTelemetry?.enabled),
+        address: String(config?.tracing?.openTelemetry?.address ?? ''),
       },
       zipkin: {
-        enabled: false,
-        httpEndpoint: '',
+        enabled: Boolean(config?.tracing?.zipkin?.enabled),
+        httpEndpoint: String(config?.tracing?.zipkin?.httpEndpoint ?? ''),
       }
     },
     metrics: {
       prometheus: {
-        enabled: false,
-        addRoutersLabels: true,
+        enabled: Boolean(config?.metrics?.prometheus?.enabled),
+        addRoutersLabels: config?.metrics?.prometheus?.addRoutersLabels ?? true,
       },
       datadog: {
-        enabled: false,
-        address: '',
+        enabled: Boolean(config?.metrics?.datadog?.enabled),
+        address: String(config?.metrics?.datadog?.address ?? ''),
       }
     }
-  });
+  };
 
-  // Sync server state to local state
-  useEffect(() => {
-    if (Object.keys(config).length > 0 && !isLoading) {
-      setFormData((prev) => ({
-        ...prev,
-        tracing: config.tracing || prev.tracing,
-        metrics: config.metrics || prev.metrics,
-      }));
-    }
-  }, [config, isLoading]);
+  const formData = edited ?? serverFormData;
+
+  // Helper to start an edit
+  const setFormData = (updater: (prev: TelemetryConfig) => TelemetryConfig) => {
+    setEdited(prev => updater(prev ?? serverFormData));
+  };
 
   const handleSave = () => {
     mutation.mutate(formData);

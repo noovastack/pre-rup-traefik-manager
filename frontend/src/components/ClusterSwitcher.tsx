@@ -36,7 +36,7 @@ export function ClusterSwitcher() {
       setErrorMsg('');
       handleClusterChange(data.name);
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       setErrorMsg(err.message || 'Failed to connect to cluster');
     }
   });

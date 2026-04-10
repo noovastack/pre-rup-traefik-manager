@@ -13,8 +13,8 @@ import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 export function TLSOptionsPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingOption, setEditingOption] = useState<any>(undefined);
-  const [yamlOption, setYamlOption] = useState<any>(null);
+  const [editingOption, setEditingOption] = useState<unknown>(undefined);
+  const [yamlOption, setYamlOption] = useState<unknown>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: options = [], isLoading } = useQuery({
@@ -65,7 +65,7 @@ export function TLSOptionsPage({ namespace }: { namespace: string }) {
             <p className="text-sm text-zinc-400 max-w-sm mx-auto">Enhance security by defining minimum TLS versions and cipher suites.</p>
           </div>
         ) : (
-          options.map((opt: any) => {
+          options.map((opt: unknown) => {
             const minVersion = opt.spec.minVersion || 'Default';
             return (
               <div key={opt.metadata.name} className="flex items-center justify-between rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-5 transition-colors transition-opacity hover:bg-zinc-800/40 hover:border-zinc-700/60 group backdrop-blur-md">

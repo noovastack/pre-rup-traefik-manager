@@ -41,8 +41,8 @@ describe('GatewaysPage', () => {
   };
 
   it('shows CRD missing warning if Gateway API is not installed', async () => {
-    (capabilitiesApi.get as any).mockResolvedValue({ gatewayApi: false });
-    (k8sApi.getGateways as any).mockResolvedValue([]);
+    (capabilitiesApi.get as unknown).mockResolvedValue({ gatewayApi: false });
+    (k8sApi.getGateways as unknown).mockResolvedValue([]);
 
     renderHook(<GatewaysPage namespace="default" />);
 
@@ -54,8 +54,8 @@ describe('GatewaysPage', () => {
 
   it('renders loading state initially', () => {
     // Provide an unresolved promise to keep it in loading state
-    (k8sApi.getGateways as any).mockReturnValue(new Promise(() => {}));
-    (capabilitiesApi.get as any).mockResolvedValue({ gatewayApi: true });
+    (k8sApi.getGateways as unknown).mockReturnValue(new Promise(() => {}));
+    (capabilitiesApi.get as unknown).mockResolvedValue({ gatewayApi: true });
 
     renderHook(<GatewaysPage namespace="default" />);
 
@@ -63,8 +63,8 @@ describe('GatewaysPage', () => {
   });
 
   it('renders empty state if no gateways are returned', async () => {
-    (capabilitiesApi.get as any).mockResolvedValue({ gatewayApi: true });
-    (k8sApi.getGateways as any).mockResolvedValue([]);
+    (capabilitiesApi.get as unknown).mockResolvedValue({ gatewayApi: true });
+    (k8sApi.getGateways as unknown).mockResolvedValue([]);
 
     renderHook(<GatewaysPage namespace="default" />);
 
@@ -75,8 +75,8 @@ describe('GatewaysPage', () => {
   });
 
   it('renders a list of gateways', async () => {
-    (capabilitiesApi.get as any).mockResolvedValue({ gatewayApi: true });
-    (k8sApi.getGateways as any).mockResolvedValue([
+    (capabilitiesApi.get as unknown).mockResolvedValue({ gatewayApi: true });
+    (k8sApi.getGateways as unknown).mockResolvedValue([
       {
         metadata: { name: 'test-gateway' },
         spec: {
@@ -105,11 +105,11 @@ describe('GatewaysPage', () => {
 
   it('opens delete confirmation and calls API on confirm', async () => {
     const user = userEvent.setup();
-    (capabilitiesApi.get as any).mockResolvedValue({ gatewayApi: true });
-    (k8sApi.getGateways as any).mockResolvedValue([
+    (capabilitiesApi.get as unknown).mockResolvedValue({ gatewayApi: true });
+    (k8sApi.getGateways as unknown).mockResolvedValue([
       { metadata: { name: 'delete-me' }, spec: {} }
     ]);
-    (k8sApi.deleteGateway as any).mockResolvedValue({});
+    (k8sApi.deleteGateway as unknown).mockResolvedValue({});
 
     renderHook(<GatewaysPage namespace="test-ns" />);
 

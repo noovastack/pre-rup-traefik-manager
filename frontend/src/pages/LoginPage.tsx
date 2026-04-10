@@ -21,7 +21,7 @@ export function LoginPage() {
     try {
       const res = await authApi.login(username, password);
       await login(res.token);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'Login failed');
     } finally {
       setLoading(false);

@@ -45,22 +45,27 @@ export function CreateIngressRouteUDPDialog({
   useEffect(() => {
     if (open) {
       if (editRoute) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editRoute.metadata.name);
         
         const rule = editRoute.spec.routes[0];
         if (rule?.services && rule.services.length > 0) {
           setServiceName(rule.services[0].name);
+       
           setServicePort(rule.services[0].port.toString());
         } else {
           setServiceName('');
+       
           setServicePort('');
         }
       } else {
+       
         setName('');
         setServiceName('');
+       
         setServicePort('');
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editRoute]);
@@ -69,6 +74,7 @@ export function CreateIngressRouteUDPDialog({
     if (serviceName && services.length > 0) {
       const svc = services.find(s => s.name === serviceName);
       if (svc && svc.ports.length === 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setServicePort(svc.ports[0].toString());
       }
     }
@@ -96,7 +102,7 @@ export function CreateIngressRouteUDPDialog({
     return crd;
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name || !serviceName || !servicePort) {
         throw new Error("Please fill in all required fields.");

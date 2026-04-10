@@ -19,7 +19,7 @@ import { SidebarProvider } from '../components/ui/sidebar';
 
 describe('AppSidebar', () => {
   const defaultProps = {
-    activePage: 'dashboard' as any,
+    activePage: 'dashboard' as unknown,
     onNavigate: vi.fn(),
     namespaces: ['default', 'kube-system'],
     activeNamespace: 'default',
@@ -39,7 +39,7 @@ describe('AppSidebar', () => {
   };
 
   it('renders navigation groups and brand header', () => {
-    (useAuth as any).mockReturnValue({ user: null, logout: vi.fn() });
+    (useAuth as unknown).mockReturnValue({ user: null, logout: vi.fn() });
     renderSidebar();
 
     expect(screen.getByText('Pre Rup Traefik Manager')).toBeInTheDocument();
@@ -49,15 +49,15 @@ describe('AppSidebar', () => {
   });
 
   it('indicates the active page correctly', () => {
-    (useAuth as any).mockReturnValue({ user: null, logout: vi.fn() });
-    renderSidebar({ ...defaultProps, activePage: 'gateways' as any });
+    (useAuth as unknown).mockReturnValue({ user: null, logout: vi.fn() });
+    renderSidebar({ ...defaultProps, activePage: 'gateways' as unknown });
 
     const gatewaysButton = screen.getByText('Gateways').closest('button');
     expect(gatewaysButton?.className).toContain('bg-indigo-600/10'); // The active style for Gateway API group
   });
 
   it('calls onNavigate when a menu item is clicked', async () => {
-    (useAuth as any).mockReturnValue({ user: null, logout: vi.fn() });
+    (useAuth as unknown).mockReturnValue({ user: null, logout: vi.fn() });
     const user = userEvent.setup();
     const onNavigate = vi.fn();
     renderSidebar({ ...defaultProps, onNavigate });
@@ -67,7 +67,7 @@ describe('AppSidebar', () => {
   });
 
   it('displays user profile info if user is logged in', () => {
-    (useAuth as any).mockReturnValue({
+    (useAuth as unknown).mockReturnValue({
       user: { username: 'testuser', role: 'viewer', displayName: 'Test User' },
       logout: vi.fn(),
     });
@@ -79,7 +79,7 @@ describe('AppSidebar', () => {
 
   it('displays user management for admins only', () => {
     // Admin user
-    (useAuth as any).mockReturnValue({
+    (useAuth as unknown).mockReturnValue({
       user: { username: 'admin', role: 'admin' },
       logout: vi.fn(),
     });
@@ -89,7 +89,7 @@ describe('AppSidebar', () => {
     unmount();
 
     // Viewer user
-    (useAuth as any).mockReturnValue({
+    (useAuth as unknown).mockReturnValue({
       user: { username: 'viewer', role: 'viewer' },
       logout: vi.fn(),
     });
@@ -99,7 +99,7 @@ describe('AppSidebar', () => {
 
   it('calls logout when sign out is clicked', async () => {
     const logoutMock = vi.fn();
-    (useAuth as any).mockReturnValue({ user: null, logout: logoutMock });
+    (useAuth as unknown).mockReturnValue({ user: null, logout: logoutMock });
     const user = userEvent.setup();
     renderSidebar();
 

@@ -37,7 +37,7 @@ export function FirstLoginSetupPage() {
     try {
       await profileApi.setup(username.trim(), newPassword);
       await refreshUser();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'Setup failed');
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
+import type { MiddlewareTCP } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import { AlertCircle } from 'lucide-react';
 interface GenericCRDDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  resource: any | null;
+  resource: { metadata: { name: string; namespace?: string; [key: string]: unknown }; spec?: unknown; [key: string]: unknown } | null;
   resourceType: 'middlewaretcp'; // Extend as needed
   namespace: string;
   title: string;
@@ -43,30 +44,32 @@ export default function GenericCRDDialog({
   // Populate form on edit
   useEffect(() => {
     if (open) {
-      if (resource) {
-        setName(resource.metadata.name);
-        const { metadata, ...rest } = resource;
-        try {
-           // Provide JSON since YAML parser is not in frontend by default.
-           setYamlContent(JSON.stringify(rest.spec || rest, null, 2));
-        } catch (e) {
-           setYamlContent('{}');
+      queueMicrotask(() => {
+        if (resource) {
+          setName(resource.metadata.name);
+          const { metadata, ...rest } = resource; // eslint-disable-line @typescript-eslint/no-unused-vars
+          try {
+            // Provide JSON since YAML parser is not in frontend by default.
+            setYamlContent(JSON.stringify(rest.spec || rest, null, 2));
+          } catch {
+            setYamlContent('{}');
+          }
+        } else {
+          setName('');
+          setYamlContent(yamlTemplate || '{\n  "spec": {}\n}');
         }
-      } else {
-        setName('');
-        setYamlContent(yamlTemplate || '{\n  "spec": {}\n}');
-      }
-      setError('');
+        setError('');
+      });
     }
   }, [open, resource, yamlTemplate]);
 
   const createMutation = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: unknown) => {
       if (resourceType === 'middlewaretcp') {
         if (resource) {
-          return k8sApi.updateMiddlewareTCP(namespace, name, payload);
+          return k8sApi.updateMiddlewareTCP(namespace, name, payload as MiddlewareTCP);
         }
-        return k8sApi.createMiddlewareTCP(namespace, payload);
+        return k8sApi.createMiddlewareTCP(namespace, payload as MiddlewareTCP);
       }
       throw new Error('Unsupported resource type for GenericCRDDialog');
     },
@@ -91,7 +94,7 @@ export default function GenericCRDDialog({
     let parsedSpec;
     try {
       parsedSpec = JSON.parse(yamlContent);
-    } catch (err) {
+    } catch {
       setError('Invalid JSON content. Please ensure it is valid JSON.');
       return;
     }

@@ -118,10 +118,10 @@ export interface ClusterHealth {
 }
 
 export const clusterApi = {
-  getClusters: () => request<any[]>('/clusters').then(d => d || []),
+  getClusters: () => request<unknown[]>('/clusters').then(d => d || []),
   getClusterHealth: () => request<ClusterHealth>('/cluster/health'),
   createCluster: (name: string, serverUrl: string, token: string, caCert?: string) =>
-    request<any>('/clusters', {
+    request<unknown>('/clusters', {
       method: 'POST',
       body: JSON.stringify({ name, serverUrl, token, caCert: caCert ?? '' })
     }),
@@ -135,29 +135,29 @@ export const k8sApi = {
   getNamespaces: () => request<string[]>('/namespaces').then(d => d || []),
   getServices: (namespace: string) => request<K8sService[]>(`/namespaces/${namespace}/services`).then(d => d || []),
   getEndpoints: (namespace: string, service: string) => request<{name: string}[]>(`/namespaces/${namespace}/services/${service}/endpoints`).then(d => d || []),
-  getMiddlewares: (namespace: string) => request<any[]>(`/namespaces/${namespace}/middlewares`).then(d => d || []),
+  getMiddlewares: (namespace: string) => request<unknown[]>(`/namespaces/${namespace}/middlewares`).then(d => d || []),
   deleteMiddleware: (namespace: string, name: string) => 
     request<void>(`/namespaces/${namespace}/middlewares/${name}`, { method: 'DELETE' }),
-  createMiddleware: (namespace: string, body: any) =>
-    request<any>(`/namespaces/${namespace}/middlewares`, {
+  createMiddleware: (namespace: string, body: unknown) =>
+    request<unknown>(`/namespaces/${namespace}/middlewares`, {
       method: 'POST',
       body: JSON.stringify(body),
     }),
-  updateMiddleware: (namespace: string, name: string, body: any) =>
-    request<any>(`/namespaces/${namespace}/middlewares/${name}`, {
+  updateMiddleware: (namespace: string, name: string, body: unknown) =>
+    request<unknown>(`/namespaces/${namespace}/middlewares/${name}`, {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
-  getTlsOptions: (namespace: string) => request<any[]>(`/namespaces/${namespace}/tlsoptions`).then(d => d || []),
+  getTlsOptions: (namespace: string) => request<unknown[]>(`/namespaces/${namespace}/tlsoptions`).then(d => d || []),
   deleteTlsOption: (namespace: string, name: string) => 
     request<void>(`/namespaces/${namespace}/tlsoptions/${name}`, { method: 'DELETE' }),
-  createTlsOption: (namespace: string, body: any) =>
-    request<any>(`/namespaces/${namespace}/tlsoptions`, {
+  createTlsOption: (namespace: string, body: unknown) =>
+    request<unknown>(`/namespaces/${namespace}/tlsoptions`, {
       method: 'POST',
       body: JSON.stringify(body),
     }),
-  updateTlsOption: (namespace: string, name: string, body: any) =>
-    request<any>(`/namespaces/${namespace}/tlsoptions/${name}`, {
+  updateTlsOption: (namespace: string, name: string, body: unknown) =>
+    request<unknown>(`/namespaces/${namespace}/tlsoptions/${name}`, {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
@@ -286,7 +286,7 @@ export const k8sApi = {
 
   // -- Metrics endpoints --
   getMetrics: (namespace: string) =>
-    request<any>(`/namespaces/${namespace}/metrics`),
+    request<{ httpCodes?: Record<string, number>, totalRequests?: number, activeConnections?: number }>(`/namespaces/${namespace}/metrics`),
 
   // ── Gateway API Endpoints ────────────────────────────────────────────────
   getGatewayClasses: () =>
@@ -324,18 +324,18 @@ export const k8sApi = {
 
   // ── Observability ────────────────────────────────────────────────────────
   getTelemetryConfig: (namespace: string, name: string) =>
-    request<any>(`/namespaces/${namespace}/observability/${name}`),
-  updateTelemetryConfig: (namespace: string, name: string, body: any) =>
-    request<any>(`/namespaces/${namespace}/observability/${name}`, {
+    request<unknown>(`/namespaces/${namespace}/observability/${name}`),
+  updateTelemetryConfig: (namespace: string, name: string, body: unknown) =>
+    request<unknown>(`/namespaces/${namespace}/observability/${name}`, {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
 
   // ── WebAssembly Plugins ──────────────────────────────────────────────────
   getPluginConfig: (namespace: string) =>
-    request<any>(`/namespaces/${namespace}/plugins`),
-  updatePluginConfig: (namespace: string, body: any) =>
-    request<any>(`/namespaces/${namespace}/plugins`, {
+    request<unknown>(`/namespaces/${namespace}/plugins`),
+  updatePluginConfig: (namespace: string, body: unknown) =>
+    request<unknown>(`/namespaces/${namespace}/plugins`, {
       method: 'PUT',
       body: JSON.stringify(body),
     }),

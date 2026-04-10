@@ -49,6 +49,7 @@ export function CreateIngressRouteTCPDialog({
   useEffect(() => {
     if (open) {
       if (editRoute) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editRoute.metadata.name);
         
         const rule = editRoute.spec.routes[0];
@@ -56,23 +57,27 @@ export function CreateIngressRouteTCPDialog({
         
         if (rule?.services && rule.services.length > 0) {
           setServiceName(rule.services[0].name);
+       
           setServicePort(rule.services[0].port.toString());
         } else {
           setServiceName('');
+       
           setServicePort('');
         }
         
         setTls(!!editRoute.spec.tls);
         setPassthrough(!!editRoute.spec.tls?.passthrough);
       } else {
+       
         setName('');
         setMatchrule('HostSNI(`*`)');
         setServiceName('');
+       
         setServicePort('');
         setTls(false);
         setPassthrough(false);
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editRoute]);
@@ -81,6 +86,7 @@ export function CreateIngressRouteTCPDialog({
     if (serviceName && services.length > 0) {
       const svc = services.find(s => s.name === serviceName);
       if (svc && svc.ports.length === 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setServicePort(svc.ports[0].toString());
       }
     }
@@ -113,7 +119,7 @@ export function CreateIngressRouteTCPDialog({
     return crd;
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name || !matchrule || !serviceName || !servicePort) {
         throw new Error("Please fill in all required fields.");

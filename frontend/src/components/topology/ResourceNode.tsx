@@ -1,12 +1,12 @@
 import { Handle, Position } from '@xyflow/react';
 import { Globe, Server, Box, Layers, ShieldAlert, Cpu, Network, Lock } from 'lucide-react';
 
-export function ResourceNode({ data }: { data: any }) {
+export function ResourceNode({ data }: { data: unknown }) {
 
   let Icon = Box;
   let bgClass = "bg-zinc-900";
   let borderClass = "border-zinc-800";
-  let textClass = "text-zinc-100";
+  const textClass = "text-zinc-100";
   let iconColor = "text-zinc-500";
 
   switch(data.kind) {

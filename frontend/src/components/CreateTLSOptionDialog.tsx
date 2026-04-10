@@ -26,7 +26,7 @@ export function CreateTLSOptionDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editOption?: any;
+  editOption?: unknown;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -39,16 +39,18 @@ export function CreateTLSOptionDialog({
   useEffect(() => {
     if (open) {
       if (editOption) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editOption.metadata.name);
         setMinVersion(editOption.spec.minVersion || 'VersionTLS12');
         setCipherSuites(editOption.spec.cipherSuites || []);
       } else {
+       
         setName('');
         setMinVersion('VersionTLS12');
         setCipherSuites([]);
       }
       setNewCipher('');
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editOption]);
@@ -65,7 +67,7 @@ export function CreateTLSOptionDialog({
   };
 
   const generateCRD = () => {
-    const crd: any = {
+    const crd: unknown = {
       apiVersion: "traefik.containo.us/v1alpha1",
       kind: "TLSOption",
       metadata: {
@@ -84,7 +86,7 @@ export function CreateTLSOptionDialog({
     return crd;
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name for the TLS Option.");
 

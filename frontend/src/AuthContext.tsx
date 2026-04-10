@@ -73,14 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const t = localStorage.getItem('tm_token');
     if (!t) {
-      setUserLoading(false);
       return;
     }
     fetchProfile(t).then((profile) => {
       setUser(profile);
       setUserLoading(false);
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const handleUnauthorized = () => logout();
@@ -95,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }

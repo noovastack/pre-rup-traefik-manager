@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
 import { Save, Blocks, Tag, Link2, Trash2 } from 'lucide-react';
@@ -12,10 +12,13 @@ interface WasmPlugin {
   version: string;
 }
 
+type PluginsPayload = {
+  experimental?: { plugins?: Record<string, WasmPlugin> };
+};
+
 export function PluginsPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
-  const [plugins, setPlugins] = useState<Record<string, WasmPlugin>>({});
-  const [hasChanges, setHasChanges] = useState(false);
+  const [editedPlugins, setEditedPlugins] = useState<Record<string, WasmPlugin> | null>(null);
   const [saveError, setSaveError] = useState('');
   
   // Create state for adding a new plugin
@@ -28,20 +31,15 @@ export function PluginsPage({ namespace }: { namespace: string }) {
     queryFn: () => k8sApi.getPluginConfig(namespace),
   });
 
-  useEffect(() => {
-    if (config?.experimental?.plugins) {
-      setPlugins(config.experimental.plugins);
-      setHasChanges(false);
-    } else {
-      setPlugins({});
-    }
-  }, [config]);
+  const serverPlugins = (config as PluginsPayload | undefined)?.experimental?.plugins ?? {};
+  const plugins = editedPlugins ?? serverPlugins;
+  const hasChanges = editedPlugins !== null;
 
   const updateMutation = useMutation({
-    mutationFn: (newConfig: any) => k8sApi.updatePluginConfig(namespace, newConfig),
+    mutationFn: (newConfig: PluginsPayload) => k8sApi.updatePluginConfig(namespace, newConfig),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pluginsConfig', namespace] });
-      setHasChanges(false);
+      setEditedPlugins(null);
       setSaveError('');
     },
     onError: (err: Error) => {
@@ -60,23 +58,21 @@ export function PluginsPage({ namespace }: { namespace: string }) {
 
   const handleAddPlugin = () => {
     if (!newAlias || !newModule || !newVersion) return;
-    setPlugins(prev => ({
-      ...prev,
+    setEditedPlugins(prev => ({
+      ...(prev ?? serverPlugins),
       [newAlias]: { moduleName: newModule, version: newVersion }
     }));
     setNewAlias('');
     setNewModule('');
     setNewVersion('');
-    setHasChanges(true);
   };
 
   const handleRemovePlugin = (alias: string) => {
-    setPlugins(prev => {
-      const next = { ...prev };
+    setEditedPlugins(prev => {
+      const next = { ...(prev ?? serverPlugins) };
       delete next[alias];
       return next;
     });
-    setHasChanges(true);
   };
 
   if (isLoading) return <div className="p-8 text-zinc-400 animate-pulse">Loading Plugins Configuration…</div>;

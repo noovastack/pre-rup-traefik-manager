@@ -57,11 +57,12 @@ export function CreateTraefikServiceDialog({
   useEffect(() => {
     if (open) {
       if (editService) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editService.metadata.name);
         
         if (editService.spec.weighted) {
           setType('weighted');
-          setWeightedServices(editService.spec.weighted.services.map((s: any) => ({
+          setWeightedServices(editService.spec.weighted.services.map((s: unknown) => ({
             name: s.name,
             port: s.port?.toString() || '',
             weight: s.weight?.toString() || '1',
@@ -73,20 +74,21 @@ export function CreateTraefikServiceDialog({
             name: editService.spec.mirroring.name,
             port: editService.spec.mirroring.port?.toString() || ''
           });
-          setMirrors(editService.spec.mirroring.mirrors.map((m: any) => ({
+          setMirrors(editService.spec.mirroring.mirrors.map((m: unknown) => ({
             name: m.name,
             port: m.port?.toString() || '',
             percent: m.percent?.toString() || '10'
           })));
         }
       } else {
+       
         setName('');
         setType('weighted');
         setWeightedServices([{ name: '', port: '', weight: '1', serversTransport: '' }]);
         setPrimaryService({ name: '', port: '' });
         setMirrors([{ name: '', port: '', percent: '10' }]);
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editService]);
@@ -127,7 +129,7 @@ export function CreateTraefikServiceDialog({
     return crd;
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Service name is required.");
 

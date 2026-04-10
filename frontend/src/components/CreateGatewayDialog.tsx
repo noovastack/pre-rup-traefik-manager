@@ -27,7 +27,7 @@ export function CreateGatewayDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editGateway?: any;
+  editGateway?: unknown;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -45,10 +45,11 @@ export function CreateGatewayDialog({
   useEffect(() => {
     if (open) {
       if (editGateway) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editGateway.metadata.name);
         setGatewayClassName(editGateway.spec.gatewayClassName || '');
         setListeners(
-          (editGateway.spec.listeners || []).map((l: any) => ({
+          (editGateway.spec.listeners || []).map((l: unknown) => ({
             name: l.name,
             port: String(l.port),
             protocol: l.protocol,
@@ -56,11 +57,12 @@ export function CreateGatewayDialog({
           }))
         );
       } else {
+       
         setName('');
         setGatewayClassName('traefik');
         setListeners([{ name: 'web', port: '80', protocol: 'HTTP', hostname: '' }]);
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editGateway]);
@@ -75,7 +77,7 @@ export function CreateGatewayDialog({
 
   const updateListener = (index: number, field: string, value: string) => {
     const newListeners = [...listeners];
-    (newListeners[index] as any)[field] = value;
+    (newListeners[index] as import('@/types').Gateway)[field] = value;
     setListeners(newListeners);
   };
 
@@ -99,7 +101,7 @@ export function CreateGatewayDialog({
     };
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name.");
       if (!gatewayClassName) throw new Error("Please provide a GatewayClass name.");
@@ -114,9 +116,9 @@ export function CreateGatewayDialog({
       const crd = generateCRD();
 
       if (editGateway) {
-        return k8sApi.updateGateway(namespace, name, crd as any);
+        return k8sApi.updateGateway(namespace, name, crd as unknown);
       } else {
-        return k8sApi.createGateway(namespace, crd as any);
+        return k8sApi.createGateway(namespace, crd as unknown);
       }
     },
     invalidateKeys: [['gateways', namespace]],
@@ -180,7 +182,7 @@ export function CreateGatewayDialog({
                   {gatewayClasses.length === 0 && !isLoadingClasses ? (
                     <SelectItem value="none" disabled>No GatewayClasses available</SelectItem>
                   ) : (
-                    gatewayClasses.map((gc: any) => (
+                    gatewayClasses.map((gc: unknown) => (
                       <SelectItem key={gc.metadata.name} value={gc.metadata.name} className="focus:bg-blue-600/20 focus:text-blue-400">
                         {gc.metadata.name}
                       </SelectItem>

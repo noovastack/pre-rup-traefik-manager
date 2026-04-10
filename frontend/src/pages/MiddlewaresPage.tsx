@@ -11,7 +11,7 @@ import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 export function MiddlewaresPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingMw, setEditingMw] = useState<any>(undefined);
+  const [editingMw, setEditingMw] = useState<unknown>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: middlewares = [], isLoading } = useQuery({
@@ -42,7 +42,7 @@ export function MiddlewaresPage({ namespace }: { namespace: string }) {
   }
 
   // Helper to determine what type of middleware it is
-  const getMwDetails = (mw: any) => {
+  const getMwDetails = (mw: unknown) => {
     if (mw.spec.stripPrefix) {
       return { type: 'StripPrefix', icon: Scissors, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', desc: `Prefixes: ${mw.spec.stripPrefix.prefixes.join(', ')}` };
     }
@@ -76,7 +76,7 @@ export function MiddlewaresPage({ namespace }: { namespace: string }) {
             <p className="text-sm text-zinc-400 max-w-sm mx-auto">There are no Traefik Middlewares defined in the {namespace} namespace.</p>
           </div>
         ) : (
-          middlewares.map((mw: any) => {
+          middlewares.map((mw: unknown) => {
             const details = getMwDetails(mw);
             return (
               <div key={mw.metadata.name} className="flex items-center justify-between rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-5 transition-colors transition-opacity hover:bg-zinc-800/40 hover:border-zinc-700/60 group backdrop-blur-md">

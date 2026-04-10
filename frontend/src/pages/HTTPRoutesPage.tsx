@@ -14,7 +14,7 @@ import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 export default function HTTPRoutesPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingRoute, setEditingRoute] = useState<any>(null);
+  const [editingRoute, setEditingRoute] = useState<unknown>(null);
   const [yamlRoute, setYamlRoute] = useState<HTTPRoute | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { data: routes = [], isLoading } = useQuery({

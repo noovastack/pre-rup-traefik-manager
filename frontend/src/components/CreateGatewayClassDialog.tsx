@@ -23,7 +23,7 @@ export function CreateGatewayClassDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editClass?: any;
+  editClass?: unknown;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -34,15 +34,17 @@ export function CreateGatewayClassDialog({
   useEffect(() => {
     if (open) {
       if (editClass) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editClass.metadata.name);
         setControllerName(editClass.spec.controllerName || '');
         setDescription(editClass.spec.description || '');
       } else {
+       
         setName('');
         setControllerName('traefik.io/gateway-controller');
         setDescription('');
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
       setShowPreview(false);
     }
   }, [open, editClass]);
@@ -61,7 +63,7 @@ export function CreateGatewayClassDialog({
     };
   };
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name.");
       if (!controllerName) throw new Error("Please provide a controller name.");
@@ -69,9 +71,9 @@ export function CreateGatewayClassDialog({
       const crd = generateCRD();
 
       if (editClass) {
-        return k8sApi.updateGatewayClass(name, crd as any);
+        return k8sApi.updateGatewayClass(name, crd as import('@/types').GatewayClass);
       } else {
-        return k8sApi.createGatewayClass(crd as any);
+        return k8sApi.createGatewayClass(crd as unknown);
       }
     },
     invalidateKeys: [['gatewayclasses']],

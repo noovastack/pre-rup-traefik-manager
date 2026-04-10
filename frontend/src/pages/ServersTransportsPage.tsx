@@ -22,8 +22,8 @@ import { CreateServersTransportDialog } from '@/components/CreateServersTranspor
 export function ServersTransportsPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingTransport, setEditingTransport] = useState<any>(undefined);
-  const [yamlTransport, setYamlTransport] = useState<any>(null);
+  const [editingTransport, setEditingTransport] = useState<unknown>(undefined);
+  const [yamlTransport, setYamlTransport] = useState<unknown>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: transports = [], isLoading, error } = useQuery({

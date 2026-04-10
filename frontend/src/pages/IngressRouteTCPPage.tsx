@@ -22,8 +22,8 @@ import { CreateIngressRouteTCPDialog } from '@/components/CreateIngressRouteTCPD
 export function IngressRouteTCPPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingRoute, setEditingRoute] = useState<any>(undefined);
-  const [yamlRoute, setYamlRoute] = useState<any>(null);
+  const [editingRoute, setEditingRoute] = useState<unknown>(undefined);
+  const [yamlRoute, setYamlRoute] = useState<unknown>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: routes = [], isLoading, error } = useQuery({

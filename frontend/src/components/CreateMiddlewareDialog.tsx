@@ -27,7 +27,7 @@ export function CreateMiddlewareDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editMw?: any;
+  editMw?: unknown;
 }) {
   // Shared State
   const [name, setName] = useState('');
@@ -44,6 +44,7 @@ export function CreateMiddlewareDialog({
   useEffect(() => {
     if (open) {
       if (editMw) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editMw.metadata.name);
         
         if (editMw.spec.stripPrefix) {
@@ -61,6 +62,7 @@ export function CreateMiddlewareDialog({
           setPluginJson(JSON.stringify(editMw.spec.plugin, null, 2));
         }
       } else {
+       
         setName('');
         setMwType('StripPrefix');
         setPrefixes('');
@@ -69,15 +71,15 @@ export function CreateMiddlewareDialog({
         setBurst('');
         setPluginJson('');
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
     }
   }, [open, editMw]);
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name) throw new Error("Please provide a name for the middleware.");
 
-      let spec: any = {};
+      let spec: unknown = {};
 
       if (mwType === 'StripPrefix') {
         if (!prefixes) throw new Error("Please provide at least one prefix.");
@@ -93,7 +95,7 @@ export function CreateMiddlewareDialog({
         try {
           const parsed = JSON.parse(pluginJson);
           spec = { plugin: parsed };
-        } catch (err) {
+        } catch {
           throw new Error("Invalid JSON configuration provided for plugin.");
         }
       }

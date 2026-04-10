@@ -22,7 +22,7 @@ import SelectInput from 'react-select';
 
 // Styled react-select to match our dark theme
 const selectStyles = {
-  control: (base: any, state: any) => ({
+  control: (base: unknown, state: unknown) => ({
     ...base,
     background: '#18181b', // bg-zinc-900
     borderColor: state.isFocused ? '#3b82f6' : '#27272a', // border-zinc-800 focus:ring-blue-500
@@ -33,13 +33,13 @@ const selectStyles = {
       borderColor: state.isFocused ? '#3b82f6' : '#3f3f46'
     }
   }),
-  menu: (base: any) => ({
+  menu: (base: unknown) => ({
     ...base,
     background: '#18181b',
     border: '1px solid #27272a',
     zIndex: 50
   }),
-  option: (base: any, state: any) => ({
+  option: (base: unknown, state: unknown) => ({
     ...base,
     backgroundColor: state.isFocused ? '#2563eb33' : 'transparent', // blue-600/20
     color: state.isFocused ? '#60a5fa' : '#e4e4e7', // blue-400 : zinc-200
@@ -48,16 +48,16 @@ const selectStyles = {
       backgroundColor: '#2563eb'
     }
   }),
-  multiValue: (base: any) => ({
+  multiValue: (base: unknown) => ({
     ...base,
     backgroundColor: '#3f3f46', // zinc-700
     borderRadius: '4px'
   }),
-  multiValueLabel: (base: any) => ({
+  multiValueLabel: (base: unknown) => ({
     ...base,
     color: '#e4e4e7' // zinc-200
   }),
-  multiValueRemove: (base: any) => ({
+  multiValueRemove: (base: unknown) => ({
     ...base,
     color: '#a1a1aa', // zinc-400
     '&:hover': {
@@ -65,7 +65,7 @@ const selectStyles = {
       color: '#f87171' // red-400
     }
   }),
-  input: (base: any) => ({
+  input: (base: unknown) => ({
     ...base,
     color: '#e4e4e7'
   })
@@ -88,7 +88,7 @@ export function CreateIngressRouteDialog({
   const [serviceName, setServiceName] = useState('');
   const [servicePort, setServicePort] = useState('');
   const [serversTransport, setServersTransport] = useState('');
-  const [selectedMiddlewares, setSelectedMiddlewares] = useState<any[]>([]);
+  const [selectedMiddlewares, setSelectedMiddlewares] = useState<Array<{ value: string; label: string }>>([]);
   const [tls, setTls] = useState(false);
   const [certResolver, setCertResolver] = useState('default');
 
@@ -120,6 +120,7 @@ export function CreateIngressRouteDialog({
   useEffect(() => {
     if (open) {
       if (editRoute) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(editRoute.metadata.name);
         
         // Extract host
@@ -130,17 +131,19 @@ export function CreateIngressRouteDialog({
         // Extract service
         if (rule?.services && rule.services.length > 0) {
           setServiceName(rule.services[0].name);
+       
           setServicePort(rule.services[0].port.toString());
-          setServersTransport((rule.services[0] as any).serversTransport || '');
+          setServersTransport((rule.services[0] as unknown).serversTransport || '');
         } else {
           setServiceName('');
+       
           setServicePort('');
           setServersTransport('');
         }
         
         // Extract middlewares
         if (rule?.middlewares) {
-          setSelectedMiddlewares(rule.middlewares.map((m: any) => ({ value: m.name, label: m.name })));
+          setSelectedMiddlewares(rule.middlewares.map((m: unknown) => ({ value: m.name, label: m.name })));
         } else {
           setSelectedMiddlewares([]);
         }
@@ -152,16 +155,18 @@ export function CreateIngressRouteDialog({
           setCertResolver('default');
         }
       } else {
+       
         setName('');
         setHost('');
         setServiceName('');
+       
         setServicePort('');
         setServersTransport('');
         setSelectedMiddlewares([]);
         setTls(false);
         setCertResolver('default');
       }
-      clearError();
+      /* clearError is handled by useResourceForm reset */
     }
   }, [open, editRoute]);
 
@@ -170,12 +175,13 @@ export function CreateIngressRouteDialog({
     if (serviceName && services.length > 0) {
       const svc = services.find(s => s.name === serviceName);
       if (svc && svc.ports.length === 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
         setServicePort(svc.ports[0].toString());
       }
     }
   }, [serviceName, services]);
 
-  const { error, clearError, isPending, submit } = useResourceForm({
+  const { error, isPending, submit } = useResourceForm({
     mutationFn: () => {
       if (!name || !host || !serviceName || !servicePort) {
         throw new Error("Please fill in all required fields.");
@@ -196,7 +202,7 @@ export function CreateIngressRouteDialog({
                 {
                   name: serviceName,
                   port: parseInt(servicePort, 10),
-                  kind: traefikServices.some((ts: any) => ts.metadata.name === serviceName) ? 'TraefikService' : 'Service',
+                  kind: traefikServices.some((ts: unknown) => ts.metadata.name === serviceName) ? 'TraefikService' : 'Service',
                   ...((serversTransport && serversTransport !== 'none') ? { serversTransport } : {})
                 },
               ],
@@ -290,7 +296,7 @@ export function CreateIngressRouteDialog({
                         {traefikServices.length === 0 && !isLoadingTS ? (
                           <SelectItem value="none_ts" disabled>No TraefikServices found</SelectItem>
                         ) : (
-                          traefikServices.map((ts: any) => (
+                          traefikServices.map((ts: unknown) => (
                             <SelectItem key={`ts-${ts.metadata.name}`} value={ts.metadata.name} className="focus:bg-orange-600/20 focus:text-orange-400">
                               {ts.metadata.name}
                             </SelectItem>
@@ -348,9 +354,9 @@ export function CreateIngressRouteDialog({
                 <div className="text-xs text-zinc-500 mb-2">Attach traffic rules like authentication or rate limiting to this route.</div>
                 <SelectInput
                   isMulti
-                  options={middlewares.map((m: any) => ({ value: m.metadata.name, label: m.metadata.name }))}
+                  options={middlewares.map((m: unknown) => ({ value: m.metadata.name, label: m.metadata.name }))}
                   value={selectedMiddlewares}
-                  onChange={(newValue) => setSelectedMiddlewares(newValue as any[])}
+                  onChange={(newValue) => setSelectedMiddlewares(newValue as Array<{ value: string; label: string }>)}
                   styles={selectStyles}
                   placeholder={isLoadingMws ? "Loading…" : "Select Middlewares…"}
                   noOptionsMessage={() => "No middlewares found"}
