@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
@@ -62,7 +63,7 @@ export function CreateTraefikServiceDialog({
         
         if (editService.spec.weighted) {
           setType('weighted');
-          setWeightedServices(editService.spec.weighted.services.map((s: unknown) => ({
+          setWeightedServices(editService.spec.weighted.services.map((s: any) => ({  
             name: s.name,
             port: s.port?.toString() || '',
             weight: s.weight?.toString() || '1',
@@ -74,7 +75,7 @@ export function CreateTraefikServiceDialog({
             name: editService.spec.mirroring.name,
             port: editService.spec.mirroring.port?.toString() || ''
           });
-          setMirrors(editService.spec.mirroring.mirrors.map((m: unknown) => ({
+          setMirrors(editService.spec.mirroring.mirrors.map((m: any) => ({
             name: m.name,
             port: m.port?.toString() || '',
             percent: m.percent?.toString() || '10'

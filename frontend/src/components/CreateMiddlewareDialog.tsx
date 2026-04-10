@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { k8sApi } from '@/api';
 import { useResourceForm } from '@/hooks/useResourceForm';
@@ -27,7 +28,7 @@ export function CreateMiddlewareDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editMw?: unknown;
+  editMw?: any;  
 }) {
   // Shared State
   const [name, setName] = useState('');

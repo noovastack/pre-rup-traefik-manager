@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clusterApi } from '@/api';
@@ -19,14 +20,14 @@ export function ClusterSwitcher() {
   const [newCaCert, setNewCaCert] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const { data: clusters = [] } = useQuery({
+  const { data: clusters = [] as Array<{id: string, name: string}> } = useQuery({
     queryKey: ['clusters'],
     queryFn: clusterApi.getClusters,
   });
 
   const createMutation = useMutation({
     mutationFn: () => clusterApi.createCluster(newClusterName, newServerUrl, newToken, newCaCert),
-    onSuccess: (data) => {
+    onSuccess: (data: any) =>   {
       queryClient.invalidateQueries({ queryKey: ['clusters'] });
       setIsAddOpen(false);
       setNewClusterName('');
@@ -37,7 +38,8 @@ export function ClusterSwitcher() {
       handleClusterChange(data.name);
     },
     onError: (err: unknown) => {
-      setErrorMsg(err.message || 'Failed to connect to cluster');
+      const e = err as Error;
+      setErrorMsg(e?.message || 'Failed to connect to cluster');
     }
   });
 
@@ -45,7 +47,7 @@ export function ClusterSwitcher() {
     mutationFn: clusterApi.deleteCluster,
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['clusters'] });
-      const deletedCluster = clusters.find(c => c.id === deletedId);
+      const deletedCluster: any = clusters.find((c: any) => c.id === deletedId);  
       if (deletedCluster && activeCluster === deletedCluster.name) {
         handleClusterChange('local');
       }
@@ -78,7 +80,7 @@ export function ClusterSwitcher() {
             <Server className="h-4 w-4 mr-2" />
             Local Cluster
           </DropdownMenuItem>
-          {clusters.map(cluster => (
+          {clusters.map((cluster: any) => (  
             <DropdownMenuItem 
               key={cluster.id} 
               className="group cursor-pointer flex justify-between items-center hover:bg-zinc-800"

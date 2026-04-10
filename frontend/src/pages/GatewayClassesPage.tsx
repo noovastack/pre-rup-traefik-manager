@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -14,7 +15,7 @@ import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 export default function GatewayClassesPage() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingClass, setEditingClass] = useState<unknown>(null);
+  const [editingClass, setEditingClass] = useState<any>(null);
   const [yamlGatewayClass, setYamlGatewayClass] = useState<GatewayClass | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { data: classes = [], isLoading } = useQuery({

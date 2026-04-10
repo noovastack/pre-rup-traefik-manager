@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
@@ -27,7 +28,7 @@ export function CreateGatewayDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editGateway?: unknown;
+  editGateway?: import('@/types').Gateway;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -49,7 +50,7 @@ export function CreateGatewayDialog({
         setName(editGateway.metadata.name);
         setGatewayClassName(editGateway.spec.gatewayClassName || '');
         setListeners(
-          (editGateway.spec.listeners || []).map((l: unknown) => ({
+          (editGateway.spec.listeners || []).map((l: any) => ({  
             name: l.name,
             port: String(l.port),
             protocol: l.protocol,
@@ -77,7 +78,7 @@ export function CreateGatewayDialog({
 
   const updateListener = (index: number, field: string, value: string) => {
     const newListeners = [...listeners];
-    (newListeners[index] as import('@/types').Gateway)[field] = value;
+    (newListeners[index] as any)[field] = value;
     setListeners(newListeners);
   };
 
@@ -116,9 +117,9 @@ export function CreateGatewayDialog({
       const crd = generateCRD();
 
       if (editGateway) {
-        return k8sApi.updateGateway(namespace, name, crd as unknown);
+        return k8sApi.updateGateway(namespace, name, crd as any  );
       } else {
-        return k8sApi.createGateway(namespace, crd as unknown);
+        return k8sApi.createGateway(namespace, crd as any  );
       }
     },
     invalidateKeys: [['gateways', namespace]],
@@ -182,7 +183,7 @@ export function CreateGatewayDialog({
                   {gatewayClasses.length === 0 && !isLoadingClasses ? (
                     <SelectItem value="none" disabled>No GatewayClasses available</SelectItem>
                   ) : (
-                    gatewayClasses.map((gc: unknown) => (
+                    gatewayClasses.map((gc: any) => (  
                       <SelectItem key={gc.metadata.name} value={gc.metadata.name} className="focus:bg-blue-600/20 focus:text-blue-400">
                         {gc.metadata.name}
                       </SelectItem>

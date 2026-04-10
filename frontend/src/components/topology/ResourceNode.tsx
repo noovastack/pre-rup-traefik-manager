@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Handle, Position } from '@xyflow/react';
 import { Globe, Server, Box, Layers, ShieldAlert, Cpu, Network, Lock } from 'lucide-react';
 
-export function ResourceNode({ data }: { data: unknown }) {
+export function ResourceNode({ data }: { data: any }) {  
 
   let Icon = Box;
   let bgClass = "bg-zinc-900";

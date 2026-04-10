@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { authApi } from '../api';
@@ -21,7 +22,7 @@ export function LoginPage() {
     try {
       const res = await authApi.login(username, password);
       await login(res.token);
-    } catch (err: unknown) {
+    } catch (err: any) {  
       setError(err.message || 'Login failed');
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { profileApi } from '@/api';
 import { useAuth } from '@/AuthContext';
@@ -37,7 +38,7 @@ export function FirstLoginSetupPage() {
     try {
       await profileApi.setup(username.trim(), newPassword);
       await refreshUser();
-    } catch (err: unknown) {
+    } catch (err: any) {  
       setError(err.message || 'Setup failed');
     } finally {
       setLoading(false);

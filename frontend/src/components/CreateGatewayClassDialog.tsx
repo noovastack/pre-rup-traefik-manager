@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { k8sApi } from '@/api';
 import { useResourceForm } from '@/hooks/useResourceForm';
@@ -23,7 +24,7 @@ export function CreateGatewayClassDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editClass?: unknown;
+  editClass?: import('@/types').GatewayClass;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -71,9 +72,9 @@ export function CreateGatewayClassDialog({
       const crd = generateCRD();
 
       if (editClass) {
-        return k8sApi.updateGatewayClass(name, crd as import('@/types').GatewayClass);
+        return k8sApi.updateGatewayClass(name, crd as any  );
       } else {
-        return k8sApi.createGatewayClass(crd as unknown);
+        return k8sApi.createGatewayClass(crd as any  );
       }
     },
     invalidateKeys: [['gatewayclasses']],

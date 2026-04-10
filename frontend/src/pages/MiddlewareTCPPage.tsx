@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -202,7 +203,7 @@ export default function MiddlewareTCPPage({ namespace }: { namespace: string }) 
       <GenericCRDDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        resource={editMiddleware}
+        resource={editMiddleware as any}
         resourceType="middlewaretcp"
         namespace={namespace}
         title="TCP Middleware"

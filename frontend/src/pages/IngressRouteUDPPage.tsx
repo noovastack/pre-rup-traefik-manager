@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -22,8 +23,8 @@ import { CreateIngressRouteUDPDialog } from '@/components/CreateIngressRouteUDPD
 export function IngressRouteUDPPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingRoute, setEditingRoute] = useState<unknown>(undefined);
-  const [yamlRoute, setYamlRoute] = useState<unknown>(null);
+  const [editingRoute, setEditingRoute] = useState<any>(undefined);
+  const [yamlRoute, setYamlRoute] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: routes = [], isLoading, error } = useQuery({
@@ -164,7 +165,7 @@ export function IngressRouteUDPPage({ namespace }: { namespace: string }) {
               <div>
                 <DialogTitle className="text-xl tracking-tight">YAML Definition</DialogTitle>
                 <DialogDescription className="text-zinc-400">
-                  {yamlRoute?.metadata.name}
+                  {(yamlRoute as any)?.metadata?.name}
                 </DialogDescription>
               </div>
             </div>

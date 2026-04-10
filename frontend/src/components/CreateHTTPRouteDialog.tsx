@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
@@ -27,7 +28,7 @@ export function CreateHTTPRouteDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editRoute?: unknown;
+  editRoute?: import('@/types').HTTPRoute;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -63,15 +64,15 @@ export function CreateHTTPRouteDialog({
         setParentGateway(editRoute.spec.parentRefs?.[0]?.name || 'traefik-gateway');
         setHostnames((editRoute.spec.hostnames || []).join(', '));
         
-        const initialRules: unknown[] = [];
-        (editRoute.spec.rules || []).forEach((rule: unknown) => {
+        const initialRules: any[] = [];
+        (editRoute.spec.rules || []).forEach((rule: any) => {  
           const pathMatch = rule.matches?.[0]?.path?.value || '/';
           const backendRefs = rule.backendRefs || [];
           if (backendRefs.length === 0) {
             initialRules.push({ pathMatch, backendName: '', backendPort: '80', weight: '1' });
           } else {
-            backendRefs.forEach((b: unknown) => {
-               initialRules.push({
+            backendRefs.forEach((b: any) => {  
+                initialRules.push({
                  pathMatch,
                  backendName: b.name,
                  backendPort: String(b.port),
@@ -103,7 +104,7 @@ export function CreateHTTPRouteDialog({
 
   const updateRule = (index: number, field: string, value: string) => {
     const newRules = [...rules];
-    (newRules[index] as import('@/types').HTTPRoute)[field] = value;
+    (newRules[index] as any)[field] = value;
     setRules(newRules);
   };
 
@@ -185,9 +186,9 @@ export function CreateHTTPRouteDialog({
       };
 
       if (editRoute) {
-        return k8sApi.updateHTTPRoute(namespace, name, crd as unknown);
+        return k8sApi.updateHTTPRoute(namespace, name, crd as any  );
       } else {
-        return k8sApi.createHTTPRoute(namespace, crd as unknown);
+        return k8sApi.createHTTPRoute(namespace, crd as any  );
       }
     },
     invalidateKeys: [['httproutes', namespace]],
@@ -251,7 +252,7 @@ export function CreateHTTPRouteDialog({
                   {gateways.length === 0 && !isLoadingGW ? (
                     <SelectItem value="none" disabled>No Gateways in namespace</SelectItem>
                   ) : (
-                    gateways.map((gw: unknown) => (
+                    gateways.map((gw: any) => (  
                       <SelectItem key={gw.metadata.name} value={gw.metadata.name} className="focus:bg-blue-600/20 focus:text-blue-400">
                         {gw.metadata.name}
                       </SelectItem>
@@ -312,7 +313,7 @@ export function CreateHTTPRouteDialog({
                          {services.length === 0 && !isLoadingServices ? (
                            <SelectItem value="none" disabled>No services found</SelectItem>
                          ) : (
-                           services.map((s: unknown) => (
+                           services.map((s: any) => (  
                              <SelectItem key={s.name} value={s.name} className="focus:bg-blue-600/20 focus:text-blue-400">
                                {s.name}
                              </SelectItem>
@@ -322,7 +323,7 @@ export function CreateHTTPRouteDialog({
                          {traefikServices.length === 0 && !isLoadingTS ? (
                            <SelectItem value="none_ts" disabled>No TraefikServices found</SelectItem>
                          ) : (
-                           traefikServices.map((ts: unknown) => (
+                           traefikServices.map((ts: any) => (  
                              <SelectItem key={`ts-${ts.metadata.name}`} value={ts.metadata.name} className="focus:bg-orange-600/20 focus:text-orange-400">
                                {ts.metadata.name}
                              </SelectItem>

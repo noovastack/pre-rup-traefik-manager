@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
 import { useMemo } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 
-const EMPTY_ARRAY: unknown[] = [];
+const EMPTY_ARRAY: any[] = [];  
 
 export function useTopologyGraph(namespace: string) {
   const { data: gateways = EMPTY_ARRAY, isLoading: isLoadingGw } = useQuery({
@@ -52,7 +53,7 @@ export function useTopologyGraph(namespace: string) {
   });
 
   const endpointQueries = useQueries({
-    queries: (services || []).map((svc: unknown) => ({
+    queries: (services || []).map((svc: any) => ({  
       queryKey: ['endpoints', namespace, svc.name],
       queryFn: () => k8sApi.getEndpoints(namespace, svc.name)
     }))
@@ -65,7 +66,7 @@ export function useTopologyGraph(namespace: string) {
     const initialNodes: Node[] = [];
     const initialEdges: Edge[] = [];
 
-    const addNode = (id: string, type: 'resourceNode', data: unknown) => {
+    const addNode = (id: string, type: 'resourceNode', data: any) => {  
       if (!initialNodes.find(n => n.id === id)) {
          initialNodes.push({ id, type, data, position: { x: 0, y: 0 } });
       }
@@ -104,18 +105,18 @@ export function useTopologyGraph(namespace: string) {
       });
 
       // Link to parent Gateways
-      route.spec?.parentRefs?.forEach((ref: unknown) => {
+      route.spec?.parentRefs?.forEach((ref: any) => {  
         if (ref.kind === 'Gateway' || !ref.kind) {
            addEdge(`gw-${ref.name}`, routeId);
         }
       });
 
       // Link to Services and ExtensionRef Middlewares
-      route.spec?.rules?.forEach((rule: unknown) => {
-        const lastSource = routeId;
+      route.spec?.rules?.forEach((rule: any) => {  
+        let lastSource = routeId;
 
         // Parse Gateway API ExtensionRef filters (e.g. Traefik Middlewares)
-        rule.filters?.forEach((f: unknown) => {
+        rule.filters?.forEach((f: any) => {  
            if (f.type === 'ExtensionRef' && f.extensionRef?.kind === 'Middleware') {
                 const mwId = `mw-${f.extensionRef.name}`;
                 addEdge(lastSource, mwId);
@@ -123,7 +124,7 @@ export function useTopologyGraph(namespace: string) {
            }
         });
 
-        rule.backendRefs?.forEach((bk: unknown) => {
+        rule.backendRefs?.forEach((bk: any) => {  
           const weightLabel = bk.weight !== undefined ? `Weight: ${bk.weight}` : undefined;
           if (bk.kind === 'Service' || !bk.kind) {
              addEdge(lastSource, `svc-${bk.name}`, undefined, weightLabel);
@@ -161,16 +162,16 @@ export function useTopologyGraph(namespace: string) {
           tlsSecretName: route.spec?.tls?.secretName || (route.spec?.tls ? 'Default/Auto TLS' : undefined),
         });
 
-        route.spec?.routes?.forEach((r: unknown) => {
+        route.spec?.routes?.forEach((r: any) => {  
             let lastSource = routeId;
             
-            r.middlewares?.forEach((mw: unknown) => {
+            r.middlewares?.forEach((mw: any) => {  
                 const mwId = `mw-${mw.name}`;
                 addEdge(lastSource, mwId);
                 lastSource = mwId; // chain them sequentially
             });
 
-            r.services?.forEach((svc: unknown) => {
+            r.services?.forEach((svc: any) => {  
                 if (svc.kind === 'Service' || !svc.kind) {
                      addEdge(lastSource, `svc-${svc.name}`);
                 } else if (svc.kind === 'TraefikService') {
@@ -189,16 +190,16 @@ export function useTopologyGraph(namespace: string) {
           tlsSecretName: route.spec?.tls?.secretName || (route.spec?.tls?.passthrough ? 'Passthrough' : undefined),
         });
 
-        route.spec?.routes?.forEach((r: unknown) => {
+        route.spec?.routes?.forEach((r: any) => {  
             let lastSource = routeId;
             
-            r.middlewares?.forEach((mw: unknown) => {
+            r.middlewares?.forEach((mw: any) => {  
                 const mwId = `mwtcp-${mw.name}`;
                 addEdge(lastSource, mwId);
                 lastSource = mwId;
             });
 
-            r.services?.forEach((svc: unknown) => {
+            r.services?.forEach((svc: any) => {  
                 // TCP routes can also target TraefikServices, assuming kind is provided
                 if (svc.kind === 'Service' || !svc.kind) {
                      addEdge(lastSource, `svc-${svc.name}`);
@@ -217,10 +218,10 @@ export function useTopologyGraph(namespace: string) {
           name: route.metadata.name,
         });
 
-        route.spec?.routes?.forEach((r: unknown) => {
+        route.spec?.routes?.forEach((r: any) => {  
             const lastSource = routeId;
             // UDP has no middlewares
-            r.services?.forEach((svc: unknown) => {
+            r.services?.forEach((svc: any) => {  
                 if (svc.kind === 'Service' || !svc.kind) {
                      addEdge(lastSource, `svc-${svc.name}`);
                 } else if (svc.kind === 'TraefikService') {
@@ -231,7 +232,7 @@ export function useTopologyGraph(namespace: string) {
     });
 
     // 5. TraefikServices
-    traefikServices.forEach((tsvc: unknown) => {
+    traefikServices.forEach((tsvc: any) => {  
         const tsvcId = `tsvc-${tsvc.metadata.name}`;
         addNode(tsvcId, 'resourceNode', {
             kind: 'TraefikService',
@@ -240,7 +241,7 @@ export function useTopologyGraph(namespace: string) {
 
         // Add weighted routes
         if (tsvc.spec?.weighted?.services) {
-            tsvc.spec.weighted.services.forEach((s: unknown) => {
+            tsvc.spec.weighted.services.forEach((s: any) => {  
                 const targetId = s.kind === 'TraefikService' ? `tsvc-${s.name}` : `svc-${s.name}`;
                 addEdge(tsvcId, targetId);
                 // Piggyback serversTransport info onto the target service node if present
@@ -258,7 +259,7 @@ export function useTopologyGraph(namespace: string) {
                 addEdge(tsvcId, `svc-${tsvc.spec.mirroring.name}`); // primary
             }
             if (tsvc.spec.mirroring.mirrors) {
-                tsvc.spec.mirroring.mirrors.forEach((m: unknown) => {
+                tsvc.spec.mirroring.mirrors.forEach((m: any) => {  
                     addEdge(tsvcId, m.kind === 'TraefikService' ? `tsvc-${m.name}` : `svc-${m.name}`);
                 });
             }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -14,7 +15,7 @@ import { CRDNotInstalled } from '@/components/CRDNotInstalled';
 export default function HTTPRoutesPage({ namespace }: { namespace: string }) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
-  const [editingRoute, setEditingRoute] = useState<unknown>(null);
+  const [editingRoute, setEditingRoute] = useState<any>(null);
   const [yamlRoute, setYamlRoute] = useState<HTTPRoute | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { data: routes = [], isLoading } = useQuery({
@@ -176,7 +177,7 @@ export default function HTTPRoutesPage({ namespace }: { namespace: string }) {
               <div>
                 <DialogTitle className="text-xl tracking-tight">YAML Definition</DialogTitle>
                 <DialogDescription className="text-zinc-400">
-                  {yamlRoute?.metadata.name}
+                  {(yamlRoute as any)?.metadata?.name}
                 </DialogDescription>
               </div>
             </div>

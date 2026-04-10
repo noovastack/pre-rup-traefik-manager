@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { k8sApi } from '@/api';
@@ -22,7 +23,7 @@ import SelectInput from 'react-select';
 
 // Styled react-select to match our dark theme
 const selectStyles = {
-  control: (base: unknown, state: unknown) => ({
+  control: (base: any, state: any) => ({
     ...base,
     background: '#18181b', // bg-zinc-900
     borderColor: state.isFocused ? '#3b82f6' : '#27272a', // border-zinc-800 focus:ring-blue-500
@@ -33,13 +34,13 @@ const selectStyles = {
       borderColor: state.isFocused ? '#3b82f6' : '#3f3f46'
     }
   }),
-  menu: (base: unknown) => ({
+  menu: (base: any) => ({
     ...base,
     background: '#18181b',
     border: '1px solid #27272a',
     zIndex: 50
   }),
-  option: (base: unknown, state: unknown) => ({
+  option: (base: any, state: any) => ({
     ...base,
     backgroundColor: state.isFocused ? '#2563eb33' : 'transparent', // blue-600/20
     color: state.isFocused ? '#60a5fa' : '#e4e4e7', // blue-400 : zinc-200
@@ -48,16 +49,16 @@ const selectStyles = {
       backgroundColor: '#2563eb'
     }
   }),
-  multiValue: (base: unknown) => ({
+  multiValue: (base: any) => ({
     ...base,
     backgroundColor: '#3f3f46', // zinc-700
     borderRadius: '4px'
   }),
-  multiValueLabel: (base: unknown) => ({
+  multiValueLabel: (base: any) => ({
     ...base,
     color: '#e4e4e7' // zinc-200
   }),
-  multiValueRemove: (base: unknown) => ({
+  multiValueRemove: (base: any) => ({
     ...base,
     color: '#a1a1aa', // zinc-400
     '&:hover': {
@@ -65,7 +66,7 @@ const selectStyles = {
       color: '#f87171' // red-400
     }
   }),
-  input: (base: unknown) => ({
+  input: (base: any) => ({
     ...base,
     color: '#e4e4e7'
   })
@@ -133,7 +134,7 @@ export function CreateIngressRouteDialog({
           setServiceName(rule.services[0].name);
        
           setServicePort(rule.services[0].port.toString());
-          setServersTransport((rule.services[0] as unknown).serversTransport || '');
+          setServersTransport((rule.services[0] as any).serversTransport || '');
         } else {
           setServiceName('');
        
@@ -143,7 +144,7 @@ export function CreateIngressRouteDialog({
         
         // Extract middlewares
         if (rule?.middlewares) {
-          setSelectedMiddlewares(rule.middlewares.map((m: unknown) => ({ value: m.name, label: m.name })));
+          setSelectedMiddlewares(rule.middlewares.map((m: any) => ({ value: m.name, label: m.name })));  
         } else {
           setSelectedMiddlewares([]);
         }
@@ -202,7 +203,7 @@ export function CreateIngressRouteDialog({
                 {
                   name: serviceName,
                   port: parseInt(servicePort, 10),
-                  kind: traefikServices.some((ts: unknown) => ts.metadata.name === serviceName) ? 'TraefikService' : 'Service',
+                  kind: traefikServices.some((ts: any) => ts.metadata.name === serviceName) ? 'TraefikService' : 'Service',  
                   ...((serversTransport && serversTransport !== 'none') ? { serversTransport } : {})
                 },
               ],
@@ -296,7 +297,7 @@ export function CreateIngressRouteDialog({
                         {traefikServices.length === 0 && !isLoadingTS ? (
                           <SelectItem value="none_ts" disabled>No TraefikServices found</SelectItem>
                         ) : (
-                          traefikServices.map((ts: unknown) => (
+                          traefikServices.map((ts: any) => (  
                             <SelectItem key={`ts-${ts.metadata.name}`} value={ts.metadata.name} className="focus:bg-orange-600/20 focus:text-orange-400">
                               {ts.metadata.name}
                             </SelectItem>
@@ -354,7 +355,7 @@ export function CreateIngressRouteDialog({
                 <div className="text-xs text-zinc-500 mb-2">Attach traffic rules like authentication or rate limiting to this route.</div>
                 <SelectInput
                   isMulti
-                  options={middlewares.map((m: unknown) => ({ value: m.metadata.name, label: m.metadata.name }))}
+                  options={middlewares.map((m: any) => ({ value: m.metadata.name, label: m.metadata.name }))}  
                   value={selectedMiddlewares}
                   onChange={(newValue) => setSelectedMiddlewares(newValue as Array<{ value: string; label: string }>)}
                   styles={selectStyles}

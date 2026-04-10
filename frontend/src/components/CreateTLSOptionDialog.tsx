@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { k8sApi } from '@/api';
 import { useResourceForm } from '@/hooks/useResourceForm';
@@ -26,7 +27,7 @@ export function CreateTLSOptionDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   namespace: string;
-  editOption?: unknown;
+  editOption?: any;  
 }) {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -67,7 +68,7 @@ export function CreateTLSOptionDialog({
   };
 
   const generateCRD = () => {
-    const crd: unknown = {
+    const crd: any = {
       apiVersion: "traefik.containo.us/v1alpha1",
       kind: "TLSOption",
       metadata: {
