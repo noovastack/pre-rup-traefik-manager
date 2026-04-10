@@ -31,7 +31,7 @@ export function DashboardPage({ namespace }: { namespace: string }) {
   });
 
   // Historical time-series state (max 30 points = 5 minutes at 10s intervals)
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<unknown[]>([]);
 
   useEffect(() => {
     if (metrics) {
@@ -40,15 +40,15 @@ export function DashboardPage({ namespace }: { namespace: string }) {
       
       const successData = Object.entries(metrics.httpCodes || {})
         .filter(([code]) => code.startsWith('2'))
-        .reduce((sum, [_, count]) => sum + (count as number), 0);
+        .reduce((sum, [, count]) => sum + (count as number), 0);
         
       const clientErrData = Object.entries(metrics.httpCodes || {})
         .filter(([code]) => code.startsWith('4'))
-        .reduce((sum, [_, count]) => sum + (count as number), 0);
+        .reduce((sum, [, count]) => sum + (count as number), 0);
 
       const serverErrData = Object.entries(metrics.httpCodes || {})
         .filter(([code]) => code.startsWith('5'))
-        .reduce((sum, [_, count]) => sum + (count as number), 0);
+        .reduce((sum, [, count]) => sum + (count as number), 0);
 
       const newDataPoint = {
         time: timeLabel,
@@ -58,12 +58,14 @@ export function DashboardPage({ namespace }: { namespace: string }) {
         serverErrs: serverErrData,
       };
 
-      setHistory(prev => {
-        const newHistory = [...prev, newDataPoint];
-        if (newHistory.length > 30) {
-          return newHistory.slice(newHistory.length - 30);
-        }
-        return newHistory;
+      queueMicrotask(() => {
+        setHistory(prev => {
+          const newHistory = [...prev, newDataPoint];
+          if (newHistory.length > 30) {
+            return newHistory.slice(newHistory.length - 30);
+          }
+          return newHistory;
+        });
       });
     }
   }, [metrics]);
@@ -264,7 +266,7 @@ export function DashboardPage({ namespace }: { namespace: string }) {
                 <div className="text-xs text-muted-foreground">No services found in {namespace}.</div>
               ) : (
                 <div className="space-y-2">
-                  {(services || []).slice(0, 5).map((svc: any) => (
+                  {(services || []).slice(0, 5).map((svc: { name: string; clusterIP?: string }) => (
                     <div key={svc.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500" />
