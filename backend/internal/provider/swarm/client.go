@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 	traefikalphav1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
@@ -24,8 +25,11 @@ func (c *Client) GetNamespaces(ctx context.Context) ([]string, error) {
 
 // ── Services ────────────────────────────────────────────────────────────────
 
-func (c *Client) GetServices(ctx context.Context, namespace string) ([]string, error) {
-	return []string{"swarm-service-a", "swarm-service-b"}, nil
+func (c *Client) GetServices(ctx context.Context, namespace string) ([]provider.ServiceInfo, error) {
+	return []provider.ServiceInfo{
+		{Name: "swarm-service-a", Ports: []int32{}},
+		{Name: "swarm-service-b", Ports: []int32{}},
+	}, nil
 }
 
 func (c *Client) GetEndpoints(ctx context.Context, namespace, service string) ([]string, error) {

@@ -175,7 +175,7 @@ export function CreateIngressRouteDialog({
   useEffect(() => {
     if (serviceName && services.length > 0) {
       const svc = services.find(s => s.name === serviceName);
-      if (svc && svc.ports.length === 1) {
+      if (svc && svc.ports?.length === 1) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
         setServicePort(svc.ports[0].toString());
       }

@@ -7,6 +7,12 @@ import (
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+// ServiceInfo represents a Kubernetes/Swarm service with its exposed ports.
+type ServiceInfo struct {
+	Name  string  `json:"name"`
+	Ports []int32 `json:"ports"`
+}
+
 // Provider abstracts the persistent storage layer for Traefik configurations.
 // While originally built for Kubernetes CRDs, this interface enables 
 // Docker Swarm, ECS, and other environments to be supported by implementing
@@ -17,7 +23,7 @@ type Provider interface {
 
 	// ── Services ───────────────────────────────────────────────────────────────
 	// In non-K8s environments, this might return swarm services or ECS tasks.
-	GetServices(ctx context.Context, namespace string) ([]string, error)
+	GetServices(ctx context.Context, namespace string) ([]ServiceInfo, error)
 	GetEndpoints(ctx context.Context, namespace, service string) ([]string, error)
 
 	// ── TLS Options ────────────────────────────────────────────────────────────

@@ -36,18 +36,7 @@ func (h *ServiceHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Just return names to keep it simple, since the UI only needs names for dropdowns.
-	// We'll update UI if it strictly requires the `ports` array later.
-	type svcResp struct {
-		Name  string `json:"name"`
-	}
-
-	var results []svcResp
-	for _, name := range svcs {
-		results = append(results, svcResp{Name: name})
-	}
-
-	respondJSON(w, http.StatusOK, results)
+	respondJSON(w, http.StatusOK, svcs)
 }
 
 func (h *ServiceHandler) ListEndpoints(w http.ResponseWriter, r *http.Request) {
