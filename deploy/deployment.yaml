@@ -60,6 +60,11 @@ spec:
                   name: traefik-manager-secrets
                   key: encryptionKey
                   optional: true  # Omit to auto-generate (key stored in /data)
+            - name: TM_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: traefik-manager-secrets
+                  key: jwtSecret
           volumeMounts:
             - name: data
               mountPath: /data

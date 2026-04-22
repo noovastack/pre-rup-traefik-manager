@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	"github.com/noovastack/pre-rup-traefik-manager/internal/provider"
 	traefikalphav1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	traefikclient "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/generated/clientset/versioned"
 
@@ -87,16 +88,28 @@ func (c *Client) GetNamespaces(ctx context.Context) ([]string, error) {
 
 // ── Services ────────────────────────────────────────────────────────────────
 
-func (c *Client) GetServices(ctx context.Context, namespace string) ([]string, error) {
+type ServiceInfo struct {
+	Name  string  `json:"name"`
+	Ports []int32 `json:"ports"`
+}
+
+func (c *Client) GetServices(ctx context.Context, namespace string) ([]provider.ServiceInfo, error) {
 	svcList, err := c.K8s.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
-	var names []string
+	var svcs []provider.ServiceInfo
 	for _, svc := range svcList.Items {
-		names = append(names, svc.Name)
+		var ports []int32
+		for _, p := range svc.Spec.Ports {
+			ports = append(ports, p.Port)
+		}
+		if ports == nil {
+			ports = []int32{}
+		}
+		svcs = append(svcs, provider.ServiceInfo{Name: svc.Name, Ports: ports})
 	}
-	return names, nil
+	return svcs, nil
 }
 
 func (c *Client) GetEndpoints(ctx context.Context, namespace, service string) ([]string, error) {
